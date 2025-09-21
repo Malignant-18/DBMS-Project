@@ -70,12 +70,12 @@ const Home = () => {
             <div className="flex items-center">
               <div className="bg-gradient-to-r from-green-400 to-emerald-500 p-3 rounded-lg shadow-lg">
                 <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-300">My Clubs</p>
-                <p className="text-2xl font-semibold text-white">{user.clubs.length}</p>
+                <p className="text-2xl font-semibold text-white">2</p>
               </div>
             </div>
           </div>
@@ -193,33 +193,6 @@ const Home = () => {
 
           {/* Right Column */}
           <div className="space-y-8">
-            {/* My Clubs */}
-            <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg shadow-lg">
-              <div className="px-6 py-4 border-b border-white/20">
-                <h2 className="text-lg font-semibold text-white">My Clubs</h2>
-              </div>
-              <div className="p-6">
-                <div className="space-y-3">
-                  {user.clubs.map((club, index) => (
-                    <div key={index} className="flex items-center justify-between p-3 border border-white/20 bg-white/5 rounded-lg hover:bg-white/10 transition-all duration-300">
-                      <div className="flex items-center">
-                        <div className="bg-gradient-to-r from-purple-400 to-pink-400 p-2 rounded-lg mr-3 shadow-lg">
-                          <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                          </svg>
-                        </div>
-                        <span className="font-medium text-white">{club}</span>
-                      </div>
-                      <button className="text-purple-400 hover:text-purple-300 text-sm font-medium transition-colors duration-300">View</button>
-                    </div>
-                  ))}
-                </div>
-                <button className="w-full mt-4 bg-white/10 backdrop-blur-sm border border-white/20 text-gray-300 py-2 rounded-md text-sm font-medium hover:bg-white/20 hover:text-white transition-all duration-300">
-                  Join New Club
-                </button>
-              </div>
-            </div>
-
             {/* Club Head Management */}
             <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg shadow-lg">
               <div className="px-6 py-4 border-b border-white/20">
