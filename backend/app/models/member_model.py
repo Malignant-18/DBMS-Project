@@ -41,7 +41,7 @@ def get_joined_clubs_of_users(reg_no):
 
 def get_all_clubs_of_users(reg_no):
     conn, cur = get_db_connection()
-    cur.execute("SELECT * FROM ClubMemberships WHERE reg_no = ? and status=?", (reg_no, 'approved'))
+    cur.execute("SELECT * FROM ClubMemberships WHERE reg_no = ?", (reg_no,))
     all_joined_clubs = [dict(row) for row in cur.fetchall()]
     conn.close()
     return all_joined_clubs
