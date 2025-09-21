@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useAuth } from '../contexts/AuthContext';
 
 // TypeScript interface for Club data from backend
 interface Club {
@@ -8,6 +9,7 @@ interface Club {
   members: number;
   category: string;
   isJoined: boolean;
+  membershipStatus?: 'approved' | 'pending' | 'rejected' | null;
 }
 
 // Backend club data structure (what we receive from API)
@@ -17,13 +19,53 @@ interface BackendClub {
   description: string;
   category: string;
   created_at: string;
+  member_count?: number;
+}
+
+// User membership data structure
+interface UserMembership {
+  membership_id: number;
+  reg_no: string;
+  club_id: number;
+  role: string;
+  status: 'approved' | 'pending' | 'rejected';
+  joined_at: string;
 }
 
 const Clubs = () => {
+  const { state } = useAuth();
+  const user = state.user;
+  
   const [activeTab, setActiveTab] = useState('myClubs');
+  const [myClubsSubTab, setMyClubsSubTab] = useState('joined');
   const [allClubs, setAllClubs] = useState<Club[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  
+  // Fetch user memberships from backend
+  const fetchUserMemberships = async (regNo: string): Promise<UserMembership[]> => {
+    try {
+      const response = await fetch(`http://127.0.0.1:5000/user/${regNo}/memberships`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include'
+      });
+      
+      if (response.ok) {
+        const memberships: UserMembership[] = await response.json();
+        console.log('Fetched user memberships:', memberships);
+        return memberships;
+      } else {
+        console.error('Failed to fetch user memberships');
+        return [];
+      }
+    } catch (err) {
+      console.error('Error fetching user memberships:', err);
+      return [];
+    }
+  };
   
   // Fetch clubs data from the new backend endpoint
   const fetchClubs = async () => {
@@ -43,15 +85,31 @@ const Clubs = () => {
         const backendClubs: BackendClub[] = await response.json();
         console.log('Fetched clubs from backend:', backendClubs);
         
+        // Fetch user memberships if user is logged in
+        let userMemberships: UserMembership[] = [];
+        if (user && user.reg_no) {
+          userMemberships = await fetchUserMemberships(user.reg_no);
+        }
+        
+        // Create a map of club_id to membership status for quick lookup
+        const membershipMap = new Map<number, 'approved' | 'pending' | 'rejected'>();
+        userMemberships.forEach(membership => {
+          membershipMap.set(membership.club_id, membership.status);
+        });
+        
         // Transform backend data to frontend format
-        const transformedClubs: Club[] = backendClubs.map((club: BackendClub) => ({
-          id: club.club_id,
-          name: club.club_name,
-          description: club.description || 'No description available',
-          members: Math.floor(Math.random() * 200) + 50, // Mock member count for now
-          category: club.category || 'General',
-          isJoined: Math.random() > 0.7 // Randomly assign some as joined for demo
-        }));
+        const transformedClubs: Club[] = backendClubs.map((club: BackendClub) => {
+          const membershipStatus = membershipMap.get(club.club_id) || null;
+          return {
+            id: club.club_id,
+            name: club.club_name,
+            description: club.description || 'No description available',
+            members: club.member_count || Math.floor(Math.random() * 200) + 50, // Use backend count or fallback
+            category: club.category || 'General',
+            isJoined: membershipStatus === 'approved',
+            membershipStatus: membershipStatus
+          };
+        });
         
         setAllClubs(transformedClubs);
       } else {
@@ -130,6 +188,7 @@ const Clubs = () => {
     : allClubs.filter(club => club.category === selectedCategory);
 
   const myClubs = allClubs.filter(club => club.isJoined);
+  const pendingClubs = allClubs.filter(club => club.membershipStatus === 'pending');
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 py-8">
@@ -226,14 +285,14 @@ const Clubs = () => {
 
               <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg p-6 shadow-lg">
                 <div className="flex items-center">
-                  <div className="bg-gradient-to-r from-green-500 to-emerald-600 p-3 rounded-lg mr-4 shadow-lg">
+                  <div className="bg-gradient-to-r from-yellow-500 to-orange-600 p-3 rounded-lg mr-4 shadow-lg">
                     <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                   </div>
                   <div>
-                    <p className="text-2xl font-bold text-white">3</p>
-                    <p className="text-sm font-medium text-slate-300">Active Events</p>
+                    <p className="text-2xl font-bold text-white">{pendingClubs.length}</p>
+                    <p className="text-sm font-medium text-slate-300">Pending Requests</p>
                   </div>
                 </div>
               </div>
@@ -256,52 +315,132 @@ const Clubs = () => {
             {/* My Clubs List */}
             <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg shadow-lg">
               <div className="px-6 py-4 border-b border-white/20">
-                <h2 className="text-xl font-semibold text-white">My Clubs</h2>
+                <h2 className="text-xl font-semibold text-white mb-4">My Clubs</h2>
+                {/* Sub-tabs for My Clubs */}
+                <div className="flex space-x-4">
+                  <button
+                    onClick={() => setMyClubsSubTab('joined')}
+                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 ${
+                      myClubsSubTab === 'joined'
+                        ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg'
+                        : 'bg-white/10 text-slate-300 hover:text-white hover:bg-white/20'
+                    }`}
+                  >
+                    Joined Clubs ({myClubs.length})
+                  </button>
+                  <button
+                    onClick={() => setMyClubsSubTab('pending')}
+                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 ${
+                      myClubsSubTab === 'pending'
+                        ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg'
+                        : 'bg-white/10 text-slate-300 hover:text-white hover:bg-white/20'
+                    }`}
+                  >
+                    Pending Requests ({pendingClubs.length})
+                  </button>
+                </div>
               </div>
               <div className="p-6">
-                <div className="space-y-4">
-                  {myClubs.map((club, index) => (
-                    <div key={index} className="bg-white/5 border border-white/20 rounded-lg p-4 hover:bg-white/10 transition-all duration-300">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center">
-                          <div className="bg-gradient-to-r from-purple-400 to-pink-400 p-3 rounded-lg mr-4 shadow-lg">
-                            <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                            </svg>
+                {/* Joined Clubs Content */}
+                {myClubsSubTab === 'joined' && (
+                  <div className="space-y-4">
+                    {myClubs.map((club, index) => (
+                      <div key={index} className="bg-white/5 border border-white/20 rounded-lg p-4 hover:bg-white/10 transition-all duration-300">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center">
+                            <div className="bg-gradient-to-r from-purple-400 to-pink-400 p-3 rounded-lg mr-4 shadow-lg">
+                              <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                              </svg>
+                            </div>
+                            <div>
+                              <h3 className="font-semibold text-white">{club.name}</h3>
+                              <p className="text-sm text-slate-400">{club.description}</p>
+                              <p className="text-xs text-slate-500 mt-1">{club.members} members • {club.category}</p>
+                            </div>
                           </div>
-                          <div>
-                            <h3 className="font-semibold text-white">{club.name}</h3>
-                            <p className="text-sm text-slate-400">{club.description}</p>
-                            <p className="text-xs text-slate-500 mt-1">{club.members} members • {club.category}</p>
+                          <div className="flex space-x-2">
+                            <button className="bg-gradient-to-r from-blue-500 to-cyan-600 hover:from-blue-600 hover:to-cyan-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-all duration-300">
+                              View
+                            </button>
+                            <button className="bg-white/10 border border-white/20 text-slate-300 hover:text-white hover:bg-white/20 px-4 py-2 rounded-md text-sm font-medium transition-all duration-300">
+                              Leave
+                            </button>
                           </div>
-                        </div>
-                        <div className="flex space-x-2">
-                          <button className="bg-gradient-to-r from-blue-500 to-cyan-600 hover:from-blue-600 hover:to-cyan-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-all duration-300">
-                            View
-                          </button>
-                          <button className="bg-white/10 border border-white/20 text-slate-300 hover:text-white hover:bg-white/20 px-4 py-2 rounded-md text-sm font-medium transition-all duration-300">
-                            Leave
-                          </button>
                         </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
-                
-                {myClubs.length === 0 && (
-                  <div className="text-center py-8">
-                    <div className="bg-gradient-to-r from-purple-400 to-pink-400 p-4 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
-                      <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                      </svg>
-                    </div>
-                    <p className="text-slate-400 mb-4">You haven't joined any clubs yet</p>
-                    <button 
-                      onClick={() => setActiveTab('allClubs')}
-                      className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-6 py-2 rounded-lg font-medium transition-all duration-300"
-                    >
-                      Explore Clubs
-                    </button>
+                    ))}
+                    
+                    {myClubs.length === 0 && (
+                      <div className="text-center py-8">
+                        <div className="bg-gradient-to-r from-purple-400 to-pink-400 p-4 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+                          <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                          </svg>
+                        </div>
+                        <p className="text-slate-400 mb-4">You haven't joined any clubs yet</p>
+                        <button 
+                          onClick={() => setActiveTab('allClubs')}
+                          className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-6 py-2 rounded-lg font-medium transition-all duration-300"
+                        >
+                          Explore Clubs
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Pending Requests Content */}
+                {myClubsSubTab === 'pending' && (
+                  <div className="space-y-4">
+                    {pendingClubs.map((club, index) => (
+                      <div key={index} className="bg-white/5 border border-white/20 rounded-lg p-4 hover:bg-white/10 transition-all duration-300">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center">
+                            <div className="bg-gradient-to-r from-yellow-400 to-orange-400 p-3 rounded-lg mr-4 shadow-lg">
+                              <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                              </svg>
+                            </div>
+                            <div>
+                              <h3 className="font-semibold text-white">{club.name}</h3>
+                              <p className="text-sm text-slate-400">{club.description}</p>
+                              <p className="text-xs text-slate-500 mt-1">{club.members} members • {club.category}</p>
+                              <div className="flex items-center mt-2">
+                                <span className="bg-yellow-500/20 text-yellow-400 px-2 py-1 rounded-full text-xs font-medium border border-yellow-500/30">
+                                  ⏳ Pending Approval
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="flex space-x-2">
+                            <button className="bg-gradient-to-r from-blue-500 to-cyan-600 hover:from-blue-600 hover:to-cyan-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-all duration-300">
+                              View
+                            </button>
+                            <button className="bg-red-500/20 border border-red-500/30 text-red-400 hover:text-red-300 hover:bg-red-500/30 px-4 py-2 rounded-md text-sm font-medium transition-all duration-300">
+                              Cancel
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                    
+                    {pendingClubs.length === 0 && (
+                      <div className="text-center py-8">
+                        <div className="bg-gradient-to-r from-yellow-400 to-orange-400 p-4 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+                          <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                        </div>
+                        <p className="text-slate-400 mb-4">No pending requests</p>
+                        <button 
+                          onClick={() => setActiveTab('allClubs')}
+                          className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-6 py-2 rounded-lg font-medium transition-all duration-300"
+                        >
+                          Apply to Clubs
+                        </button>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
@@ -354,21 +493,39 @@ const Clubs = () => {
                     
                     <div className="flex items-center justify-between mb-4">
                       <span className="text-slate-300 text-sm">{club.members} members</span>
-                      {club.isJoined && (
+                      {club.membershipStatus === 'approved' && (
                         <span className="bg-green-600/20 text-green-400 px-2 py-1 rounded-full text-xs font-medium">
                           Joined
+                        </span>
+                      )}
+                      {club.membershipStatus === 'pending' && (
+                        <span className="bg-yellow-600/20 text-yellow-400 px-2 py-1 rounded-full text-xs font-medium">
+                          Pending
+                        </span>
+                      )}
+                      {club.membershipStatus === 'rejected' && (
+                        <span className="bg-red-600/20 text-red-400 px-2 py-1 rounded-full text-xs font-medium">
+                          Rejected
                         </span>
                       )}
                     </div>
                     
                     <button
                       className={`w-full py-2 rounded-lg text-sm font-medium transition-all duration-300 ${
-                        club.isJoined
+                        club.membershipStatus === 'approved'
                           ? 'bg-white/10 border border-white/20 text-slate-300 hover:bg-white/20 hover:text-white'
+                          : club.membershipStatus === 'pending'
+                          ? 'bg-yellow-600/20 border border-yellow-600/30 text-yellow-300 cursor-not-allowed'
+                          : club.membershipStatus === 'rejected'
+                          ? 'bg-red-600/20 border border-red-600/30 text-red-300 hover:bg-red-600/30'
                           : 'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white'
                       }`}
+                      disabled={club.membershipStatus === 'pending'}
                     >
-                      {club.isJoined ? 'View Club' : 'Join Club'}
+                      {club.membershipStatus === 'approved' ? 'View Club' : 
+                       club.membershipStatus === 'pending' ? 'Request Pending' :
+                       club.membershipStatus === 'rejected' ? 'Request Again' : 
+                       'Join Club'}
                     </button>
                   </div>
                 </div>
