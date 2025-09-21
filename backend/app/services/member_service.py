@@ -1,3 +1,4 @@
+from ..models import member_model
 
 def request_membership(reg_no, club_id, role="Member"):
     
