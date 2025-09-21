@@ -12,6 +12,10 @@ def create_app():
     CORS(app, resources={r"/*": {"origins": ["http://localhost:5173"]}},
          supports_credentials=True, allow_headers=["Content-Type"])
 
+    # ✅ Fixed route definition
+    @app.route("/me", methods=["GET"])
+    def hello():
+        return {"message": "Hello from backend!"}, 200
 
     # Register all blueprints/routes
     register_routes(app)
