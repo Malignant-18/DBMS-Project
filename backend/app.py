@@ -2,7 +2,7 @@ from flask import Flask, request, jsonify,session
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_cors import CORS
 import sqlite3
-
+from datetime import datetime
 app = Flask(__name__)
 app.secret_key = "secret_key"
 app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
@@ -12,6 +12,7 @@ CORS(app, resources={r"/*": {"origins": ["http://localhost:5173"]}}, supports_cr
 def get_db_connection():
     mycon=sqlite3.connect("Voting_System.db")
     mycon.row_factory=sqlite3.Row
+    mycon.execute("PRAGMA foreign_keys = ON")
     return mycon, mycon.cursor()
 
 @app.route("/register", methods=["POST","OPTIONS"])
@@ -22,11 +23,13 @@ def register():
     reg_no = data["reg_no"]
     password = generate_password_hash(data["password"])
     name=data["name"]
+    now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     mycon, mycur = get_db_connection()
     mycur.execute("SELECT * FROM Users WHERE reg_no=?", (reg_no,))
     if mycur.fetchone():
         return jsonify(msg="EXISTING REG NUMBER"), 409
-    mycur.execute("INSERT INTO Users (reg_no, password,name) VALUES (?, ?,?)", (reg_no, password,name))
+    
+    mycur.execute("INSERT INTO Users (reg_no, password,name,created_at) VALUES (?, ?,?,?)", (reg_no, password,name,now))
     mycon.commit()
     mycon.close()
     return jsonify(msg="registered")
