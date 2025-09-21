@@ -15,11 +15,13 @@ interface Club {
 // Backend club data structure (what we receive from API)
 interface BackendClub {
   club_id: number;
-  club_name: string;
+  name: string;        // Actual field name from database
   description: string;
-  category: string;
-  created_at: string;
+  category?: string;
+  created_at?: string;
   member_count?: number;
+  logo_url?: string;
+  head_id?: string;
 }
 
 // User membership data structure
@@ -84,6 +86,7 @@ const Clubs = () => {
       if (response.ok) {
         const backendClubs: BackendClub[] = await response.json();
         console.log('Fetched clubs from backend:', backendClubs);
+        console.log('Sample club structure:', backendClubs[0]); // Debug log
         
         // Fetch user memberships if user is logged in
         let userMemberships: UserMembership[] = [];
@@ -102,7 +105,7 @@ const Clubs = () => {
           const membershipStatus = membershipMap.get(club.club_id) || null;
           return {
             id: club.club_id,
-            name: club.club_name,
+            name: club.name || 'Unnamed Club',
             description: club.description || 'No description available',
             members: club.member_count || Math.floor(Math.random() * 200) + 50, // Use backend count or fallback
             category: club.category || 'General',
