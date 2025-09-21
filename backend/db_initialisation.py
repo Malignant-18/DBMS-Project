@@ -8,7 +8,11 @@
 # mycon.commit()
 # mycon.close()
 from app.models.user_model import create_user_table
+from app.models.club_model import create_clubs_table
+from app.models.member_model import create_memberships_table
 
 if __name__ == "__main__":
     create_user_table()
+    create_clubs_table()
+    create_memberships_table()
     print("Database initialized successfully.")

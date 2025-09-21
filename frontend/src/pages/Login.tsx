@@ -1,30 +1,36 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext";
 
 const Login = () => {
   const [reg_no, setRegNo] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
+  const { login, state, clearError } = useAuth();
+  
+  // Use context loading and error states
+  const loading = state.isLoading;
+  const error = state.error;
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    try {
-      const res = await fetch("http://127.0.0.1:5000/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ reg_no, password }),
-        credentials: "include"
-      });
-      const data = await res.json();
-      if (res.ok) {
-        navigate("/home");
-      } else {
-        alert(data.msg);
-      }
-    } catch (err) {
-      console.error("Error during login:", err);
-      alert("Login failed. Please check your connection and try again.");
+    
+    // Basic validation - we'll show this as an error through context
+    if (!reg_no.trim() || !password.trim()) {
+      return; // Form validation will handle this
     }
+    
+    // Clear any existing errors
+    clearError();
+    
+    // Use the context login function
+    const success = await login({ reg_no: reg_no.trim(), password });
+    
+    if (success) {
+      console.log("Login successful, navigating to home");
+      navigate("/home");
+    }
+    // Error handling is done by the context
   };
 
   return (
@@ -42,6 +48,13 @@ const Login = () => {
         <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl p-8 shadow-xl">
           <h2 className="text-2xl font-bold text-white text-center mb-6">Welcome Back</h2>
           
+          {/* Error Message */}
+          {error && (
+            <div className="mb-4 p-3 bg-red-500/20 border border-red-500/50 rounded-lg">
+              <p className="text-red-300 text-sm text-center">{error}</p>
+            </div>
+          )}
+          
           <form onSubmit={handleLogin} className="space-y-6">
             <div>
               <label className="block text-sm font-medium text-slate-300 mb-2">Register Number</label>
@@ -52,6 +65,7 @@ const Login = () => {
                 placeholder="Enter your register number"
                 className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
                 required
+                disabled={loading}
               />
             </div>
             
@@ -64,14 +78,23 @@ const Login = () => {
                 placeholder="Enter your password"
                 className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
                 required
+                disabled={loading}
               />
             </div>
             
             <button
               type="submit"
-              className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300 transform hover:scale-105"
+              disabled={loading}
+              className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300 transform hover:scale-105 disabled:hover:scale-100"
             >
-              Sign In
+              {loading ? (
+                <div className="flex items-center justify-center">
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                  Signing In...
+                </div>
+              ) : (
+                "Sign In"
+              )}
             </button>
           </form>
           

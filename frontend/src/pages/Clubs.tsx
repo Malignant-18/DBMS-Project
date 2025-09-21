@@ -1,16 +1,84 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+
+// TypeScript interface for Club data from backend
+interface Club {
+  id: number;
+  name: string;
+  description: string;
+  members: number;
+  category: string;
+  isJoined: boolean;
+}
+
+// Backend club data structure (what we receive from API)
+interface BackendClub {
+  club_id: number;
+  club_name: string;
+  description: string;
+  category: string;
+  created_at: string;
+}
 
 const Clubs = () => {
   const [activeTab, setActiveTab] = useState('myClubs');
+  const [allClubs, setAllClubs] = useState<Club[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
   
-  // Mock user data - will be replaced with actual user context later
-  // const user = {
-  //   clubs: ["Tech Club", "Cultural Committee"],
-  //   role: "member" // Can be "member", "head", or "admin"
-  // };
+  // Fetch clubs data from the new backend endpoint
+  const fetchClubs = async () => {
+    try {
+      setLoading(true);
+      setError('');
+      
+      const response = await fetch('http://127.0.0.1:5000/club/all', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include'
+      });
+      
+      if (response.ok) {
+        const backendClubs: BackendClub[] = await response.json();
+        console.log('Fetched clubs from backend:', backendClubs);
+        
+        // Transform backend data to frontend format
+        const transformedClubs: Club[] = backendClubs.map((club: BackendClub) => ({
+          id: club.club_id,
+          name: club.club_name,
+          description: club.description || 'No description available',
+          members: Math.floor(Math.random() * 200) + 50, // Mock member count for now
+          category: club.category || 'General',
+          isJoined: Math.random() > 0.7 // Randomly assign some as joined for demo
+        }));
+        
+        setAllClubs(transformedClubs);
+      } else {
+        const errorData = await response.json();
+        console.error('Error response:', errorData);
+        setError(`Failed to fetch clubs: ${errorData.msg || 'Unknown error'}`);
+        
+        // Fallback to mock data for development
+        setAllClubs(getMockClubs());
+      }
+    } catch (err) {
+      console.error('Network error:', err);
+      setError('Unable to connect to server - using demo data');
+      
+      // Fallback to mock data
+      setAllClubs(getMockClubs());
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  // Mock available clubs data
-  const allClubs = [
+  useEffect(() => {
+    fetchClubs();
+  }, []);
+
+  // Mock data fallback function
+  const getMockClubs = (): Club[] => [
     {
       id: 1,
       name: "Tech Club",
@@ -37,14 +105,6 @@ const Clubs = () => {
     },
     {
       id: 4,
-      name: "Literary Society",
-      description: "For book lovers and aspiring writers",
-      members: 67,
-      category: "Literature",
-      isJoined: false
-    },
-    {
-      id: 5,
       name: "Environmental Club",
       description: "Working towards a greener future",
       members: 134,
@@ -52,7 +112,7 @@ const Clubs = () => {
       isJoined: false
     },
     {
-      id: 6,
+      id: 5,
       name: "Photography Club",
       description: "Capture life through the lens",
       members: 78,
@@ -61,7 +121,8 @@ const Clubs = () => {
     }
   ];
 
-  const categories = ["All", "Technology", "Culture", "Sports", "Literature", "Environment", "Arts"];
+  // Generate categories dynamically from clubs data
+  const categories = ["All", ...Array.from(new Set(allClubs.map(club => club.category)))];
   const [selectedCategory, setSelectedCategory] = useState("All");
 
   const filteredClubs = selectedCategory === "All" 
@@ -110,8 +171,41 @@ const Clubs = () => {
           </div>
         </div>
 
-        {/* My Clubs Tab */}
-        {activeTab === 'myClubs' && (
+        {/* Loading State */}
+        {loading && (
+          <div className="text-center py-12">
+            <div className="bg-gradient-to-r from-purple-400 to-pink-400 p-4 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center animate-spin">
+              <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+            </div>
+            <p className="text-slate-400 text-lg">Loading clubs...</p>
+          </div>
+        )}
+
+        {/* Error State */}
+        {error && !loading && (
+          <div className="text-center py-12">
+            <div className="bg-gradient-to-r from-red-400 to-pink-400 p-4 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+              <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <p className="text-red-400 text-lg mb-4">{error}</p>
+            <button 
+              onClick={fetchClubs}
+              className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-6 py-2 rounded-lg font-medium transition-all duration-300"
+            >
+              Try Again
+            </button>
+          </div>
+        )}
+
+        {/* Content - only show when not loading */}
+        {!loading && (
+          <>
+            {/* My Clubs Tab */}
+            {activeTab === 'myClubs' && (
           <div className="space-y-8">
             
             {/* Quick Stats */}
@@ -281,6 +375,8 @@ const Clubs = () => {
               ))}
             </div>
           </div>
+        )}
+          </>
         )}
       </div>
     </div>

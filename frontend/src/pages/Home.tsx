@@ -1,12 +1,21 @@
 import { Link } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 
 const Home = () => {
-  // Mock data - will be replaced with actual API calls later
-  const user = {
-    name: "John Doe",
-    role: "member", // Can be: "member", "club_head", "admin"
-    clubs: ["Tech Club", "Cultural Committee"]
-  };
+  const { state } = useAuth();
+  const user = state.user;
+
+  // If user is not loaded yet, show loading state
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-purple-400 mx-auto mb-4"></div>
+          <p className="text-white text-lg">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   const activeElections = [
     { id: 1, title: "Student Council Elections", club: "Student Body", deadline: "2 days", votes: 245, candidates: 5, hasVoted: false },
@@ -43,7 +52,7 @@ const Home = () => {
               <p className="text-gray-300 mt-1">Here's what's happening in your organizations</p>
             </div>
             <div className="bg-gradient-to-r from-purple-400 to-pink-400 text-white px-4 py-2 rounded-full text-sm font-semibold shadow-lg">
-              {user.role.charAt(0).toUpperCase() + user.role.slice(1).replace('_', ' ')}
+              {(user.role || 'student').charAt(0).toUpperCase() + (user.role || 'student').slice(1).replace('_', ' ')}
             </div>
           </div>
         </div>

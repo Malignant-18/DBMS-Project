@@ -1,5 +1,22 @@
 from ..utils.db import get_db_connection
 
+def create_memberships_table():
+    conn, cur = get_db_connection()
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS ClubMemberships(
+            membership_id INTEGER PRIMARY KEY AUTOINCREMENT,
+            reg_no CHAR(10) NOT NULL,
+            club_id INTEGER NOT NULL,
+            role VARCHAR(20) DEFAULT 'Member',
+            status VARCHAR(20) DEFAULT 'pending',
+            joined_at TEXT,
+            FOREIGN KEY (reg_no) REFERENCES Users(reg_no),
+            FOREIGN KEY (club_id) REFERENCES Clubs(club_id)
+        )
+    """)
+    conn.commit()
+    conn.close()
+
 def add_membership(reg_no, club_id, role="Member"):
     conn, cur = get_db_connection()
     try:

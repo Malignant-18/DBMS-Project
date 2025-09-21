@@ -1,18 +1,15 @@
 import { NavLink, useNavigate } from "react-router-dom";
 import { useState } from "react";
+import { useAuth } from "../contexts/AuthContext";
 
 const NavBar = () => {
     const navigate = useNavigate();
     const [isProfileOpen, setIsProfileOpen] = useState(false);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+    const { state, logout } = useAuth();
 
-    // Mock user data - will be replaced with actual user context later
-    const user = {
-        name: "John Doe",
-        email: "john.doe@institution.edu",
-        role: "Member",
-        avatar: "JD" // Initials for avatar
-    };
+    // Get user data from context
+    const user = state.user;
 
     const linkStyle = ({ isActive }: { isActive: boolean }) =>
         isActive
@@ -26,17 +23,23 @@ const NavBar = () => {
 
     async function handleLogout() {
         try {
-            const res = await fetch("http://localhost:5000/logout", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                credentials: "include"
-            });
-            if (res.ok) {
-                navigate('/');
-            }
+            await logout();
+            navigate('/');
         } catch (err) {
-            console.error(err);
+            console.error('Logout error:', err);
+            // Navigate anyway to ensure user is logged out from UI
+            navigate('/');
         }
+    }
+
+    // Get user initials for avatar
+    const getUserInitials = (name: string) => {
+        return name.split(' ').map(n => n[0]).join('').toUpperCase();
+    };
+
+    // If user is not authenticated, don't render navbar
+    if (!user) {
+        return null;
     }
 
     return (
@@ -115,7 +118,7 @@ const NavBar = () => {
                                     >
                                         <span className="sr-only">Open user menu</span>
                                         <div className="h-8 w-8 rounded-full bg-gradient-to-r from-purple-400 to-pink-400 flex items-center justify-center text-white text-sm font-medium shadow-lg">
-                                            {user.avatar}
+                                            {getUserInitials(user.name)}
                                         </div>
                                         <div className="ml-3 text-left">
                                             <p className="text-sm font-medium text-white">{user.name}</p>
@@ -131,7 +134,7 @@ const NavBar = () => {
                                     <div className="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-xl py-1 bg-white/95 backdrop-blur-md ring-1 ring-black ring-opacity-5 focus:outline-none z-50 border border-white/20">
                                         <div className="px-4 py-2 border-b border-gray-200">
                                             <p className="text-sm text-gray-900">{user.name}</p>
-                                            <p className="text-sm text-gray-500">{user.email}</p>
+                                            <p className="text-sm text-gray-500">{user.reg_no}</p>
                                         </div>
                                         <a href="#" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                                             <div className="flex items-center">
@@ -208,11 +211,11 @@ const NavBar = () => {
                     <div className="pt-4 pb-3 border-t border-purple-500/20 bg-slate-800/95 backdrop-blur-md">
                         <div className="flex items-center px-5">
                             <div className="h-10 w-10 rounded-full bg-gradient-to-r from-purple-400 to-pink-400 flex items-center justify-center text-white font-medium shadow-lg">
-                                {user.avatar}
+                                {getUserInitials(user.name)}
                             </div>
                             <div className="ml-3">
                                 <div className="text-base font-medium text-white">{user.name}</div>
-                                <div className="text-sm font-medium text-gray-300">{user.email}</div>
+                                <div className="text-sm font-medium text-gray-300">{user.reg_no}</div>
                             </div>
                         </div>
                         <div className="mt-3 px-2 space-y-1">
