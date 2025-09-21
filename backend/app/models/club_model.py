@@ -8,4 +8,9 @@ def get_all_clubs():
     conn.close()
     return clubs
     
-
+def get_single_club(club_id):
+    conn, cur = get_db_connection()
+    cur.execute("SELECT * FROM Clubs where club_id=?",(club_id,))
+    club = cur.fetchone()
+    conn.close()
+    return dict(club)
