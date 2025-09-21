@@ -115,26 +115,59 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             role: data.user.role,
             isAuthenticated: true,
           };
-          console.log('Restoring user session:', user);
+          console.log('Restoring user session from backend:', user);
           dispatch({ type: 'RESTORE_SESSION', payload: user });
           
           // Update localStorage with fresh data
           localStorage.setItem('user', JSON.stringify(user));
-        } else {
-          console.log('No user data in session response');
-          dispatch({ type: 'RESTORE_SESSION', payload: null });
+          dispatch({ type: 'SET_LOADING', payload: false });
+          return; // Successfully restored from backend
+        }
+      }
+      
+      // If backend session failed, try localStorage as fallback
+      console.log('Backend session failed, checking localStorage...');
+      const storedUser = localStorage.getItem('user');
+      if (storedUser) {
+        try {
+          const user = JSON.parse(storedUser);
+          console.log('Restoring user session from localStorage:', user);
+          dispatch({ type: 'RESTORE_SESSION', payload: user });
+          dispatch({ type: 'SET_LOADING', payload: false });
+          return; // Successfully restored from localStorage
+        } catch (parseError) {
+          console.error('Error parsing stored user:', parseError);
           localStorage.removeItem('user');
         }
-      } else {
-        console.log('Session check failed, no valid session');
-        // No valid session
-        dispatch({ type: 'RESTORE_SESSION', payload: null });
-        localStorage.removeItem('user');
       }
-    } catch (error) {
-      console.log('Session check error:', error);
+      
+      // No valid session found anywhere
+      console.log('No valid session found');
       dispatch({ type: 'RESTORE_SESSION', payload: null });
       localStorage.removeItem('user');
+      dispatch({ type: 'SET_LOADING', payload: false });
+      
+    } catch (error) {
+      console.log('Session check error, falling back to localStorage:', error);
+      
+      // If network error, try localStorage as fallback
+      const storedUser = localStorage.getItem('user');
+      if (storedUser) {
+        try {
+          const user = JSON.parse(storedUser);
+          console.log('Network error, restoring from localStorage:', user);
+          dispatch({ type: 'RESTORE_SESSION', payload: user });
+          dispatch({ type: 'SET_LOADING', payload: false });
+          return;
+        } catch (parseError) {
+          console.error('Error parsing stored user:', parseError);
+          localStorage.removeItem('user');
+        }
+      }
+      
+      dispatch({ type: 'RESTORE_SESSION', payload: null });
+      localStorage.removeItem('user');
+      dispatch({ type: 'SET_LOADING', payload: false });
     }
   };
 
@@ -298,8 +331,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       try {
         const storedUser = localStorage.getItem('user');
         if (storedUser) {
-          // Always verify session with backend, don't trust localStorage
-          console.log('Found stored user, verifying session with backend...');
+          // Always verify session with backend and fallback to localStorage
+          console.log('Found stored user, checking session...');
           await checkSession();
         } else {
           console.log('No stored user found');
@@ -307,7 +340,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         }
       } catch (error) {
         console.error('Error checking stored user:', error);
-        localStorage.removeItem('user');
+        // Don't remove localStorage on app load errors - network might be down
         dispatch({ type: 'SET_LOADING', payload: false });
       }
     };
