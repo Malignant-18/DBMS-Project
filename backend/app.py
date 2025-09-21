@@ -48,6 +48,12 @@ def login():
     mycon.close()
     return jsonify(msg="logged in"),200
 
+@app.route("/display_all_clubs",methods=["GET"])
+def display_all_clubs():
+    mycon, mycur = get_db_connection()
+    mycur.execute("SELECT * FROM Clubs")
+    result=mycur.fetchall()
+    return jsonify(result)
 
 @app.route('/logout',methods=["POST"])
 def logout():
