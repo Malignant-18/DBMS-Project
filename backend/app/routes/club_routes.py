@@ -4,7 +4,7 @@ from ..services.member_service import (
     request_membership,
     get_club_approved_members,
     change_membership_status,
-    change_membership_role,
+    upgrade_to_head_service
 )
 
 club_bp = Blueprint("club", __name__)
@@ -23,7 +23,7 @@ def get_club(club_id):
     if request.method == "OPTIONS":
         return "", 200
     club = fetch_single_club(club_id)
-    if club:
+    if club:    
         return jsonify(club), 200
     return jsonify(msg="Club not found"), 404
 
@@ -72,20 +72,17 @@ def update_member_status(club_id, reg_no):
         return jsonify(msg="Membership status updated"), 200
     else:
         return jsonify(msg="Failed to update membership status"), 400
-
-@club_bp.route("/<int:club_id>/members/<reg_no>/role", methods=["PATCH", "OPTIONS"])
-def update_member_role(club_id, reg_no):
+    
+@club_bp.route("/memberships/<int:membership_id>/upgrade", methods=["PATCH", "OPTIONS"])
+def upgrade_membership_route(membership_id):
     if request.method == "OPTIONS":
         return "", 200
+
     data = request.get_json()
-    role = data.get("role")
-    membership_id = data.get("membership_id")
+    admin_reg_no = data.get("admin")
 
-    if not role or not membership_id:
-        return jsonify(msg="Missing role or membership ID"), 400
+    if not admin_reg_no:
+        return jsonify(error="Missing admin registration number"), 400
 
-    updated = change_membership_role(membership_id, role)
-    if updated:
-        return jsonify(msg="Membership role updated"), 200
-    else:
-        return jsonify(msg="Failed to update role"), 400
+    success, status_code = upgrade_to_head_service(admin_reg_no, membership_id)
+    return jsonify(success), status_code

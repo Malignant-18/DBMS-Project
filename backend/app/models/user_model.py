@@ -32,5 +32,13 @@ def get_user_by_reg_no(reg_no):
     return user
 
 def verify_password(user, password):
-    # user is a tuple from fetchone(), password is at index 1
     return check_password_hash(user[1], password)
+
+def get_user_role(reg_no):
+    conn, cur = get_db_connection()
+    cur.execute("SELECT role FROM Users WHERE reg_no=?", (reg_no,))
+    row = cur.fetchone()
+    conn.close()
+    if row and row[0]:
+        return row[0]
+    return None

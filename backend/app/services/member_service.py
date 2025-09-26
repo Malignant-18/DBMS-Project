@@ -1,4 +1,5 @@
 from ..models import member_model
+from ..models.user_model import get_user_role
 
 def request_membership(reg_no, club_id, role="Member"):
     
@@ -21,6 +22,16 @@ def change_membership_status(reg_no, club_id, status):
     
     return member_model.update_membership_status(reg_no, club_id, status)
 
-def change_membership_role(membership_id, role):
+def upgrade_to_head_service(admin_reg_no, membership_id):
+    role = get_user_role(admin_reg_no)    
     
-    return member_model.update_membership_role(membership_id, role)
+    if not role:
+        return {"error": "Admin user not found"}, 404
+    if role.lower() != "admin": 
+        return {"error": "Unauthorized, only admins can upgrade to head"}, 403
+
+    updated = member_model.update_member_role(membership_id, "Head")
+    
+    if updated:
+        return {"message": "User upgraded to Head successfully"}, 200
+    return {"error": "Failed to upgrade user"}, 400
