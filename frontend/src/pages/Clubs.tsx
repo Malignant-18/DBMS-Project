@@ -194,38 +194,38 @@ const Clubs = () => {
   const pendingClubs = allClubs.filter(club => club.membershipStatus === 'pending');
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 py-8">
+    <div className="min-h-screen bg-black py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Page Header */}
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent mb-4">
+          <h1 className="text-4xl font-bold text-white mb-4">
             Campus Clubs
           </h1>
-          <p className="text-slate-400 text-lg">
+          <p className="text-gray-400 text-lg">
             Discover, join, and manage your club memberships
           </p>
         </div>
 
         {/* Tab Navigation */}
         <div className="flex justify-center mb-8">
-          <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg p-1 shadow-lg">
+          <div className="border border-gray-800 rounded-lg p-1 shadow-lg" style={{backgroundColor: 'hsla(0,0%,6.9%,1)'}}>
             <button
               onClick={() => setActiveTab('myClubs')}
-              className={`px-6 py-2 rounded-md text-sm font-medium transition-all duration-300 ${
+              className={`px-6 py-2 rounded-md text-sm font-medium transition-all duration-300 cursor-pointer ${
                 activeTab === 'myClubs'
-                  ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg'
-                  : 'text-slate-300 hover:text-white hover:bg-white/10'
+                  ? 'bg-white text-black shadow-lg'
+                  : 'text-gray-300 hover:text-white hover:bg-gray-700'
               }`}
             >
               My Clubs
             </button>
             <button
               onClick={() => setActiveTab('allClubs')}
-              className={`px-6 py-2 rounded-md text-sm font-medium transition-all duration-300 ${
+              className={`px-6 py-2 rounded-md text-sm font-medium transition-all duration-300 cursor-pointer ${
                 activeTab === 'allClubs'
-                  ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg'
-                  : 'text-slate-300 hover:text-white hover:bg-white/10'
+                  ? 'bg-white text-black shadow-lg'
+                  : 'text-gray-300 hover:text-white hover:bg-gray-700'
               }`}
             >
               All Clubs
@@ -236,27 +236,23 @@ const Clubs = () => {
         {/* Loading State */}
         {loading && (
           <div className="text-center py-12">
-            <div className="bg-gradient-to-r from-purple-400 to-pink-400 p-4 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center animate-spin">
-              <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-              </svg>
-            </div>
-            <p className="text-slate-400 text-lg">Loading clubs...</p>
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white mx-auto mb-4"></div>
+            <p className="text-gray-400 text-lg">Loading clubs...</p>
           </div>
         )}
 
         {/* Error State */}
         {error && !loading && (
           <div className="text-center py-12">
-            <div className="bg-gradient-to-r from-red-400 to-pink-400 p-4 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
-              <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="bg-red-500/20 p-4 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center border border-red-500/30">
+              <svg className="w-8 h-8 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </div>
             <p className="text-red-400 text-lg mb-4">{error}</p>
             <button 
               onClick={fetchClubs}
-              className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-6 py-2 rounded-lg font-medium transition-all duration-300"
+              className="bg-white text-black hover:bg-gray-200 px-6 py-2 rounded-lg font-medium transition-all duration-300"
             >
               Try Again
             </button>
@@ -272,71 +268,71 @@ const Clubs = () => {
             
             {/* Quick Stats */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg p-6 shadow-lg">
+              <div className="border border-gray-800 rounded-lg p-6 shadow-lg" style={{backgroundColor: 'hsla(0,0%,6.9%,1)'}}>
                 <div className="flex items-center">
-                  <div className="bg-gradient-to-r from-blue-500 to-cyan-600 p-3 rounded-lg mr-4 shadow-lg">
-                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <div className="w-8 h-8 bg-blue-500/10 rounded-lg flex items-center justify-center mr-4">
+                    <svg className="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                     </svg>
                   </div>
                   <div>
                     <p className="text-2xl font-bold text-white">{myClubs.length}</p>
-                    <p className="text-sm font-medium text-slate-300">Joined Clubs</p>
+                    <p className="text-sm font-medium text-gray-400">Joined Clubs</p>
                   </div>
                 </div>
               </div>
 
-              <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg p-6 shadow-lg">
+              <div className="border border-gray-800 rounded-lg p-6 shadow-lg" style={{backgroundColor: 'hsla(0,0%,6.9%,1)'}}>
                 <div className="flex items-center">
-                  <div className="bg-gradient-to-r from-yellow-500 to-orange-600 p-3 rounded-lg mr-4 shadow-lg">
-                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <div className="w-8 h-8 bg-amber-500/10 rounded-lg flex items-center justify-center mr-4">
+                    <svg className="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                   </div>
                   <div>
                     <p className="text-2xl font-bold text-white">{pendingClubs.length}</p>
-                    <p className="text-sm font-medium text-slate-300">Pending Requests</p>
+                    <p className="text-sm font-medium text-gray-400">Pending Requests</p>
                   </div>
                 </div>
               </div>
 
-              <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg p-6 shadow-lg">
+              <div className="border border-gray-800 rounded-lg p-6 shadow-lg" style={{backgroundColor: 'hsla(0,0%,6.9%,1)'}}>
                 <div className="flex items-center">
-                  <div className="bg-gradient-to-r from-purple-500 to-pink-600 p-3 rounded-lg mr-4 shadow-lg">
-                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <div className="w-8 h-8 bg-purple-500/10 rounded-lg flex items-center justify-center mr-4">
+                    <svg className="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
                     </svg>
                   </div>
                   <div>
                     <p className="text-2xl font-bold text-white">7</p>
-                    <p className="text-sm font-medium text-slate-300">Leadership Roles</p>
+                    <p className="text-sm font-medium text-gray-400">Leadership Roles</p>
                   </div>
                 </div>
               </div>
             </div>
 
             {/* My Clubs List */}
-            <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg shadow-lg">
-              <div className="px-6 py-4 border-b border-white/20">
+            <div className="border border-gray-800 rounded-lg shadow-lg" style={{backgroundColor: 'hsla(0,0%,6.9%,1)'}}>
+              <div className="px-6 py-4 border-b border-gray-800">
                 <h2 className="text-xl font-semibold text-white mb-4">My Clubs</h2>
                 {/* Sub-tabs for My Clubs */}
                 <div className="flex space-x-4">
                   <button
                     onClick={() => setMyClubsSubTab('joined')}
-                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 ${
+                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 cursor-pointer ${
                       myClubsSubTab === 'joined'
-                        ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg'
-                        : 'bg-white/10 text-slate-300 hover:text-white hover:bg-white/20'
+                        ? 'bg-white text-black shadow-lg'
+                        : 'bg-gray-700 text-gray-300 hover:text-white hover:bg-gray-600'
                     }`}
                   >
                     Joined Clubs ({myClubs.length})
                   </button>
                   <button
                     onClick={() => setMyClubsSubTab('pending')}
-                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 ${
+                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 cursor-pointer ${
                       myClubsSubTab === 'pending'
-                        ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg'
-                        : 'bg-white/10 text-slate-300 hover:text-white hover:bg-white/20'
+                        ? 'bg-white text-black shadow-lg'
+                        : 'bg-gray-700 text-gray-300 hover:text-white hover:bg-gray-600'
                     }`}
                   >
                     Pending Requests ({pendingClubs.length})
@@ -348,25 +344,25 @@ const Clubs = () => {
                 {myClubsSubTab === 'joined' && (
                   <div className="space-y-4">
                     {myClubs.map((club, index) => (
-                      <div key={index} className="bg-white/5 border border-white/20 rounded-lg p-4 hover:bg-white/10 transition-all duration-300">
+                      <div key={index} className="bg-gray-900/50 border border-gray-800 rounded-lg p-4 hover:border-gray-700 transition-all duration-300">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center">
-                            <div className="bg-gradient-to-r from-purple-400 to-pink-400 p-3 rounded-lg mr-4 shadow-lg">
-                              <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <div className="w-10 h-10 bg-purple-500/10 rounded-lg flex items-center justify-center mr-4">
+                              <svg className="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                               </svg>
                             </div>
                             <div>
                               <h3 className="font-semibold text-white">{club.name}</h3>
-                              <p className="text-sm text-slate-400">{club.description}</p>
-                              <p className="text-xs text-slate-500 mt-1">{club.members} members • {club.category}</p>
+                              <p className="text-sm text-gray-400">{club.description}</p>
+                              <p className="text-xs text-gray-500 mt-1">{club.members} members • {club.category}</p>
                             </div>
                           </div>
                           <div className="flex space-x-2">
-                            <button className="bg-gradient-to-r from-blue-500 to-cyan-600 hover:from-blue-600 hover:to-cyan-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-all duration-300">
+                            <button className="bg-white text-black hover:bg-gray-200 px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200">
                               View
                             </button>
-                            <button className="bg-white/10 border border-white/20 text-slate-300 hover:text-white hover:bg-white/20 px-4 py-2 rounded-md text-sm font-medium transition-all duration-300">
+                            <button className="bg-gray-700 border border-gray-600 text-gray-300 hover:text-white hover:bg-gray-600 px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200">
                               Leave
                             </button>
                           </div>
@@ -376,15 +372,15 @@ const Clubs = () => {
                     
                     {myClubs.length === 0 && (
                       <div className="text-center py-8">
-                        <div className="bg-gradient-to-r from-purple-400 to-pink-400 p-4 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
-                          <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div className="w-16 h-16 bg-purple-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                          <svg className="w-8 h-8 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                           </svg>
                         </div>
-                        <p className="text-slate-400 mb-4">You haven't joined any clubs yet</p>
+                        <p className="text-gray-400 mb-4">You haven't joined any clubs yet</p>
                         <button 
                           onClick={() => setActiveTab('allClubs')}
-                          className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-6 py-2 rounded-lg font-medium transition-all duration-300"
+                          className="bg-purple-500 hover:bg-purple-600 text-white px-6 py-2 rounded-lg font-medium transition-colors duration-200"
                         >
                           Explore Clubs
                         </button>
@@ -397,30 +393,30 @@ const Clubs = () => {
                 {myClubsSubTab === 'pending' && (
                   <div className="space-y-4">
                     {pendingClubs.map((club, index) => (
-                      <div key={index} className="bg-white/5 border border-white/20 rounded-lg p-4 hover:bg-white/10 transition-all duration-300">
+                      <div key={index} className="bg-gray-900/50 border border-gray-800 rounded-lg p-4 hover:border-gray-700 transition-all duration-300">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center">
-                            <div className="bg-gradient-to-r from-yellow-400 to-orange-400 p-3 rounded-lg mr-4 shadow-lg">
-                              <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <div className="w-10 h-10 bg-amber-500/10 rounded-lg flex items-center justify-center mr-4">
+                              <svg className="w-5 h-5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                               </svg>
                             </div>
                             <div>
                               <h3 className="font-semibold text-white">{club.name}</h3>
-                              <p className="text-sm text-slate-400">{club.description}</p>
-                              <p className="text-xs text-slate-500 mt-1">{club.members} members • {club.category}</p>
+                              <p className="text-sm text-gray-400">{club.description}</p>
+                              <p className="text-xs text-gray-500 mt-1">{club.members} members • {club.category}</p>
                               <div className="flex items-center mt-2">
-                                <span className="bg-yellow-500/20 text-yellow-400 px-2 py-1 rounded-full text-xs font-medium border border-yellow-500/30">
+                                <span className="bg-amber-500/20 text-amber-400 px-2 py-1 rounded-full text-xs font-medium border border-amber-500/30">
                                   ⏳ Pending Approval
                                 </span>
                               </div>
                             </div>
                           </div>
                           <div className="flex space-x-2">
-                            <button className="bg-gradient-to-r from-blue-500 to-cyan-600 hover:from-blue-600 hover:to-cyan-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-all duration-300">
+                            <button className="bg-white text-black hover:bg-gray-200 px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200">
                               View
                             </button>
-                            <button className="bg-red-500/20 border border-red-500/30 text-red-400 hover:text-red-300 hover:bg-red-500/30 px-4 py-2 rounded-md text-sm font-medium transition-all duration-300">
+                            <button className="bg-red-500/20 border border-red-500/30 text-red-400 hover:text-red-300 hover:bg-red-500/30 px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200">
                               Cancel
                             </button>
                           </div>
@@ -430,15 +426,15 @@ const Clubs = () => {
                     
                     {pendingClubs.length === 0 && (
                       <div className="text-center py-8">
-                        <div className="bg-gradient-to-r from-yellow-400 to-orange-400 p-4 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
-                          <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div className="w-16 h-16 bg-amber-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                          <svg className="w-8 h-8 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                           </svg>
                         </div>
-                        <p className="text-slate-400 mb-4">No pending requests</p>
+                        <p className="text-gray-400 mb-4">No pending requests</p>
                         <button 
                           onClick={() => setActiveTab('allClubs')}
-                          className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-6 py-2 rounded-lg font-medium transition-all duration-300"
+                          className="bg-purple-500 hover:bg-purple-600 text-white px-6 py-2 rounded-lg font-medium transition-colors duration-200"
                         >
                           Apply to Clubs
                         </button>
@@ -456,7 +452,7 @@ const Clubs = () => {
           <div className="space-y-6">
             
             {/* Category Filter */}
-            <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg p-4 shadow-lg">
+            <div className="border border-gray-800 rounded-lg p-4 shadow-lg" style={{backgroundColor: 'hsla(0,0%,6.9%,1)'}}>
               <h3 className="text-lg font-semibold text-white mb-4">Filter by Category</h3>
               <div className="flex flex-wrap gap-2">
                 {categories.map((category) => (
@@ -465,8 +461,8 @@ const Clubs = () => {
                     onClick={() => setSelectedCategory(category)}
                     className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 ${
                       selectedCategory === category
-                        ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg'
-                        : 'bg-white/10 text-slate-300 hover:text-white hover:bg-white/20'
+                        ? 'bg-white text-black shadow-lg'
+                        : 'bg-gray-700 text-gray-300 hover:text-white hover:bg-gray-600'
                     }`}
                   >
                     {category}
@@ -478,36 +474,36 @@ const Clubs = () => {
             {/* Clubs Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredClubs.map((club) => (
-                <div key={club.id} className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
+                <div key={club.id} className="border border-gray-800 rounded-lg shadow-lg hover:border-gray-700 transition-all duration-300" style={{backgroundColor: 'hsla(0,0%,6.9%,1)'}}>
                   <div className="p-6">
                     <div className="flex items-center mb-4">
-                      <div className="bg-gradient-to-r from-purple-400 to-pink-400 p-3 rounded-lg mr-4 shadow-lg">
-                        <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <div className="w-10 h-10 bg-purple-500/10 rounded-lg flex items-center justify-center mr-4">
+                        <svg className="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                         </svg>
                       </div>
-                      <span className="inline-block bg-purple-600/20 text-purple-300 px-2 py-1 rounded-full text-xs font-medium">
+                      <span className="inline-block bg-purple-500/20 text-purple-400 px-2 py-1 rounded-full text-xs font-medium border border-purple-500/30">
                         {club.category}
                       </span>
                     </div>
                     
                     <h3 className="text-lg font-semibold text-white mb-2">{club.name}</h3>
-                    <p className="text-slate-400 text-sm mb-4">{club.description}</p>
+                    <p className="text-gray-400 text-sm mb-4">{club.description}</p>
                     
                     <div className="flex items-center justify-between mb-4">
-                      <span className="text-slate-300 text-sm">{club.members} members</span>
+                      <span className="text-gray-300 text-sm">{club.members} members</span>
                       {club.membershipStatus === 'approved' && (
-                        <span className="bg-green-600/20 text-green-400 px-2 py-1 rounded-full text-xs font-medium">
+                        <span className="bg-green-500/20 text-green-400 px-2 py-1 rounded-full text-xs font-medium border border-green-500/30">
                           Joined
                         </span>
                       )}
                       {club.membershipStatus === 'pending' && (
-                        <span className="bg-yellow-600/20 text-yellow-400 px-2 py-1 rounded-full text-xs font-medium">
+                        <span className="bg-amber-500/20 text-amber-400 px-2 py-1 rounded-full text-xs font-medium border border-amber-500/30">
                           Pending
                         </span>
                       )}
                       {club.membershipStatus === 'rejected' && (
-                        <span className="bg-red-600/20 text-red-400 px-2 py-1 rounded-full text-xs font-medium">
+                        <span className="bg-red-500/20 text-red-400 px-2 py-1 rounded-full text-xs font-medium border border-red-500/30">
                           Rejected
                         </span>
                       )}
@@ -516,12 +512,12 @@ const Clubs = () => {
                     <button
                       className={`w-full py-2 rounded-lg text-sm font-medium transition-all duration-300 ${
                         club.membershipStatus === 'approved'
-                          ? 'bg-white/10 border border-white/20 text-slate-300 hover:bg-white/20 hover:text-white'
+                          ? 'bg-gray-700 border border-gray-600 text-gray-300 hover:bg-gray-600 hover:text-white'
                           : club.membershipStatus === 'pending'
-                          ? 'bg-yellow-600/20 border border-yellow-600/30 text-yellow-300 cursor-not-allowed'
+                          ? 'bg-amber-500/20 border border-amber-500/30 text-amber-400 cursor-not-allowed'
                           : club.membershipStatus === 'rejected'
-                          ? 'bg-red-600/20 border border-red-600/30 text-red-300 hover:bg-red-600/30'
-                          : 'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white'
+                          ? 'bg-red-500/20 border border-red-500/30 text-red-400 hover:bg-red-500/30'
+                          : 'bg-purple-500 hover:bg-purple-600 text-white'
                       }`}
                       disabled={club.membershipStatus === 'pending'}
                     >

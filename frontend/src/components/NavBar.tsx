@@ -14,7 +14,7 @@ const NavBar = () => {
     const linkStyle = ({ isActive }: { isActive: boolean }) =>
         isActive
             ? "text-white border-b-2 border-white px-3 py-2 text-sm font-medium transition-colors duration-200"
-            : "text-gray-200 hover:text-white hover:border-b-2 hover:border-white px-3 py-2 text-sm font-medium transition-all duration-200";
+            : "text-gray-200 hover:text-white border-b-2 border-transparent hover:border-white px-3 py-2 text-sm font-medium transition-colors duration-200";
 
     const mobileLinkStyle = ({ isActive }: { isActive: boolean }) =>
         isActive
@@ -43,18 +43,18 @@ const NavBar = () => {
     }
 
     return (
-        <nav className="bg-gradient-to-r from-slate-900 via-purple-900 to-slate-900 shadow-xl border-b border-purple-500/20">
+        <nav className="shadow-xl border-b border-gray-800" style={{backgroundColor: 'hsla(0,0%,6.9%,1)'}}>
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex justify-between items-center h-16">
                     {/* Logo Section */}
                     <div className="flex items-center">
                         <div className="flex-shrink-0 flex items-center">
-                            <div className="bg-gradient-to-r from-purple-400 to-pink-400 p-2 rounded-lg mr-3 shadow-lg">
-                                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <div className="bg-white p-2 rounded-lg mr-3 shadow-lg">
+                                <svg className="w-6 h-6 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                                 </svg>
                             </div>
-                            <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-400 via-pink-400 to-purple-300 bg-clip-text text-transparent">
+                            <h1 className="text-2xl font-bold text-white">
                                 EzyVote
                             </h1>
                         </div>
@@ -113,16 +113,18 @@ const NavBar = () => {
                                 <div>
                                     <button
                                         type="button"
-                                        className="max-w-xs bg-white/10 backdrop-blur-sm rounded-full flex items-center text-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-400 border border-white/20"
+                                        className="max-w-xs bg-white/10 backdrop-blur-sm rounded-full flex items-center text-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-400 border border-white/20 cursor-pointer"
                                         onClick={() => setIsProfileOpen(!isProfileOpen)}
                                     >
                                         <span className="sr-only">Open user menu</span>
-                                        <div className="h-8 w-8 rounded-full bg-gradient-to-r from-purple-400 to-pink-400 flex items-center justify-center text-white text-sm font-medium shadow-lg">
+                                        <div className="h-8 w-8 rounded-full bg-white flex items-center justify-center text-black text-sm font-medium shadow-lg">
                                             {getUserInitials(user.name)}
                                         </div>
                                         <div className="ml-3 text-left">
                                             <p className="text-sm font-medium text-white">{user.name}</p>
-                                            <p className="text-xs text-gray-300">{user.role}</p>
+                                            <p className="text-xs text-gray-300">
+                                                {user.role === 'admin' ? 'Admin' : user.role === 'head' ? 'Club Head' : 'Student'}
+                                            </p>
                                         </div>
                                         <svg className="ml-2 h-4 w-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
@@ -131,12 +133,12 @@ const NavBar = () => {
                                 </div>
 
                                 {isProfileOpen && (
-                                    <div className="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-xl py-1 bg-white/95 backdrop-blur-md ring-1 ring-black ring-opacity-5 focus:outline-none z-50 border border-white/20">
-                                        <div className="px-4 py-2 border-b border-gray-200">
-                                            <p className="text-sm text-gray-900">{user.name}</p>
-                                            <p className="text-sm text-gray-500">{user.reg_no}</p>
+                                    <div className="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-xl py-1 ring-1 ring-gray-700 focus:outline-none z-50 border border-gray-700" style={{backgroundColor: 'hsla(0,0%,6.9%,1)'}}>
+                                        <div className="px-4 py-2 border-b border-gray-700">
+                                            <p className="text-sm text-white">{user.name}</p>
+                                            <p className="text-sm text-gray-400">{user.reg_no}</p>
                                         </div>
-                                        <a href="#" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                        <a href="#" className="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-white cursor-pointer">
                                             <div className="flex items-center">
                                                 <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
@@ -144,7 +146,7 @@ const NavBar = () => {
                                                 Your Profile
                                             </div>
                                         </a>
-                                        <a href="#" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                        <a href="#" className="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-white cursor-pointer">
                                             <div className="flex items-center">
                                                 <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
@@ -155,7 +157,7 @@ const NavBar = () => {
                                         </a>
                                         <button
                                             onClick={handleLogout}
-                                            className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                            className="block w-full text-left px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-white cursor-pointer"
                                         >
                                             <div className="flex items-center">
                                                 <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -194,23 +196,23 @@ const NavBar = () => {
             {/* Mobile menu */}
             {isMobileMenuOpen && (
                 <div className="md:hidden">
-                    <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-slate-800/95 backdrop-blur-md border-t border-purple-500/20">
-                        <NavLink to='/home' className={mobileLinkStyle}>
+                    <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 border-t border-gray-800" style={{backgroundColor: 'hsla(0,0%,6.9%,1)'}}>
+                        <NavLink to='/home' className={mobileLinkStyle} onClick={() => setIsMobileMenuOpen(false)}>
                             Home
                         </NavLink>
-                        <NavLink to='/clubs' className={mobileLinkStyle}>
+                        <NavLink to='/clubs' className={mobileLinkStyle} onClick={() => setIsMobileMenuOpen(false)}>
                             Clubs
                         </NavLink>
-                        <NavLink to='/voting' className={mobileLinkStyle}>
+                        <NavLink to='/voting' className={mobileLinkStyle} onClick={() => setIsMobileMenuOpen(false)}>
                             Voting
                         </NavLink>
-                        <NavLink to='/notifications' className={mobileLinkStyle}>
+                        <NavLink to='/notifications' className={mobileLinkStyle} onClick={() => setIsMobileMenuOpen(false)}>
                             Notifications
                         </NavLink>
                     </div>
-                    <div className="pt-4 pb-3 border-t border-purple-500/20 bg-slate-800/95 backdrop-blur-md">
+                    <div className="pt-4 pb-3 border-t border-gray-800" style={{backgroundColor: 'hsla(0,0%,6.9%,1)'}}>
                         <div className="flex items-center px-5">
-                            <div className="h-10 w-10 rounded-full bg-gradient-to-r from-purple-400 to-pink-400 flex items-center justify-center text-white font-medium shadow-lg">
+                            <div className="h-10 w-10 rounded-full bg-white flex items-center justify-center text-black font-medium shadow-lg">
                                 {getUserInitials(user.name)}
                             </div>
                             <div className="ml-3">

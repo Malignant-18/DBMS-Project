@@ -49,30 +49,35 @@ const Register = () => {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center px-4">
+        <div className="min-h-screen bg-black flex items-center justify-center px-4">
             <div className="w-full max-w-md">
                 {/* Logo/Header */}
                 <div className="text-center mb-8">
-                    <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent mb-2">
+                    <div className="w-12 h-12 bg-white rounded-lg flex items-center justify-center mx-auto mb-4">
+                        <svg className="w-6 h-6 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </div>
+                    <h1 className="text-4xl md:text-5xl font-bold text-white mb-2">
                         EzyVote
                     </h1>
-                    <p className="text-slate-400">Join the Democratic Process</p>
+                    <p className="text-gray-400">Join the Democratic Process</p>
                 </div>
 
                 {/* Register Form */}
-                <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl p-8 shadow-xl">
+                <div className="border border-gray-800 rounded-2xl p-8 shadow-xl" style={{backgroundColor: 'hsla(0,0%,6.9%,1)'}}>
                     <h2 className="text-2xl font-bold text-white text-center mb-6">Create Account</h2>
                     
                     {/* Error Message */}
                     {error && (
-                        <div className="mb-4 p-3 bg-red-500/20 border border-red-500/50 rounded-lg">
-                            <p className="text-red-300 text-sm text-center">{error}</p>
+                        <div className="mb-4 p-3 bg-red-500/20 border border-red-500/30 rounded-lg">
+                            <p className="text-red-400 text-sm text-center">{error}</p>
                         </div>
                     )}
                     
                     <form onSubmit={handleSubmit} className="space-y-6">
                         <div>
-                            <label className="block text-sm font-medium text-slate-300 mb-2">Register Number</label>
+                            <label className="block text-sm font-medium text-gray-300 mb-2">Register Number</label>
                             <input
                                 type="text"
                                 onChange={(e) => { displayRegNo(e.target.value) }}
@@ -80,26 +85,26 @@ const Register = () => {
                                 placeholder="MDL22CS001 (Format: MDL[YY][XX][###])"
                                 required
                                 pattern="^MDL[0-9]{2}[A-Z]{2}[0-9]{3}$"
-                                className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                                className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-gray-500 transition-all"
                                 disabled={loading}
                             />
                         </div>
                         
                         <div>
-                            <label className="block text-sm font-medium text-slate-300 mb-2">Full Name</label>
+                            <label className="block text-sm font-medium text-gray-300 mb-2">Full Name</label>
                             <input
                                 type="text"
                                 onChange={(e) => { displayName(e.target.value) }}
                                 value={name}
                                 placeholder="Enter your full name"
                                 required
-                                className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                                className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-gray-500 transition-all"
                                 disabled={loading}
                             />
                         </div>
                         
                         <div>
-                            <label className="block text-sm font-medium text-slate-300 mb-2">Password</label>
+                            <label className="block text-sm font-medium text-gray-300 mb-2">Password</label>
                             <input
                                 type="password"
                                 onChange={(e) => { displayPassword(e.target.value) }}
@@ -107,7 +112,7 @@ const Register = () => {
                                 placeholder="Create a secure password (min 6 characters)"
                                 required
                                 minLength={6}
-                                className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                                className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-gray-500 transition-all"
                                 disabled={loading}
                             />
                         </div>
@@ -115,11 +120,11 @@ const Register = () => {
                         <button
                             type="submit"
                             disabled={loading}
-                            className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300 transform hover:scale-105 disabled:hover:scale-100"
+                            className="w-full bg-white hover:bg-gray-200 disabled:bg-gray-600 disabled:cursor-not-allowed text-black font-semibold py-3 px-6 rounded-lg transition-colors duration-200 cursor-pointer"
                         >
                             {loading ? (
                                 <div className="flex items-center justify-center">
-                                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-black mr-2"></div>
                                     Creating Account...
                                 </div>
                             ) : (
@@ -129,11 +134,11 @@ const Register = () => {
                     </form>
                     
                     <div className="mt-6 text-center">
-                        <p className="text-slate-400">
+                        <p className="text-gray-400">
                             Already have an account?{" "}
                             <Link 
                                 to='/login' 
-                                className="text-purple-400 hover:text-purple-300 font-semibold transition-colors"
+                                className="text-white hover:text-gray-300 font-medium transition-colors"
                             >
                                 Sign In
                             </Link>
