@@ -62,11 +62,29 @@ def update_membership_status(reg_no , club_id  ,status):
     conn.close()
     return True
 
-def update_membership_role(membership_id, role):
-    if role not in ("Member", "Head"):
+def update_member_role(membership_id, role):
+    print(role)
+    if role not in ["Member", "Head"]:
         return False
     conn, cur = get_db_connection()
-    cur.execute("UPDATE ClubMemberships SET role=? WHERE membership_id=?", (role, membership_id))
-    conn.commit()
+    try:
+        cur.execute(
+            "UPDATE ClubMemberships SET role=? WHERE membership_id=? AND status=?",
+            (role, membership_id, "approved"),
+        )
+        conn.commit()
+        rows_affected = cur.rowcount
+    except Exception as e:
+        print("DB Error:", e)
+        rows_affected = 0
+    finally:
+        conn.close()
+
+    return rows_affected > 0 
+def get_member_role(reg_no ,  club_id):
+    conn, cur = get_db_connection()
+    cur.execute("SELECT role FROM ClubMemberships WHERE reg_no = ? and club_id = ? and status=?", (reg_no, club_id, 'approved'))
+    role = cur.fetchone()
     conn.close()
-    return True
+    return role[0] if role else None
+    
