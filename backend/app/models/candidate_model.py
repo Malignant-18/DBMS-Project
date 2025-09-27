@@ -55,6 +55,11 @@ def get_candidate_by_id(candidate_id):
     conn.close()
     return dict(candidate) if candidate else None
 
+def increase_vote(candidate_id):
+    conn, cur = get_db_connection()
+    cur.execute("UPDATE Candidates SET total_votes=total_votes+1 where candidate_id=?",(candidate_id))
+    conn.commit()
+    return True
 
 def delete_candidate(candidate_id):
     conn, cur = get_db_connection()
@@ -63,4 +68,3 @@ def delete_candidate(candidate_id):
     conn.close()
     return True
 
-    
