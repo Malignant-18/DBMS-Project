@@ -7,7 +7,7 @@ const Notifications = () => {
         {/* Header */}
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-white mb-2">Error</h1>
-          <p className="text-gray-400">This page is under contruction</p>
+          <p className="text-gray-400">This page is under construction</p>
         </div>
 
         {/* No Notifications State */}

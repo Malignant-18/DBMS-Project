@@ -1,23 +1,30 @@
 import React, { useState, useEffect } from 'react';
 
 interface Candidate {
-  id: number;
-  name: string;
-  description: string;
-  image?: string;
-  votes: number;
+  candidate_id: number;
+  election_id: number;
+  reg_no: string;
+  candidate_name: string;
+  manifesto: string;
+  total_votes: number;
 }
 
 interface Election {
-  id: number;
-  title: string;
-  description: string;
-  club: string;
-  candidates: Candidate[];
-  deadline: string;
-  hasVoted: boolean;
-  isActive: boolean;
-  totalVotes: number;
+  election_id: number;
+  club_id: number;
+  name: string; // club name
+  position_id: number;
+  position_name: string;
+  created_by: string;
+  created_by_name: string;
+  start_time: string;
+  end_time: string;
+  status: 'upcoming' | 'ongoing' | 'completed';
+  result_declared: boolean;
+  created_at: string;
+  candidates?: Candidate[];
+  hasVoted?: boolean;
+  totalVotes?: number;
 }
 
 interface ElectionCardProps {
@@ -41,41 +48,50 @@ const ElectionCard: React.FC<ElectionCardProps> = ({
     <div className="border border-gray-700 rounded-lg p-6 hover:border-gray-600 transition-all duration-200" style={{backgroundColor: 'hsla(0,0%,6.9%,1)'}}>
       {/* Election Header */}
       <div className="flex justify-between items-start mb-4">
-        <h3 className="text-xl font-semibold text-white">{election.title}</h3>
-        <span className={`px-3 py-1 text-xs font-medium rounded-full ${
-          election.hasVoted 
-            ? 'bg-green-500/20 text-green-300 border border-green-500/30' 
-            : 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
-        }`}>
-          {election.hasVoted ? 'Voted' : 'Pending'}
-        </span>
+        <h3 className="text-xl font-semibold text-white">{election.position_name} - {election.name}</h3>
+        <div className="flex gap-2">
+          <span className={`px-3 py-1 text-xs font-medium rounded-full ${
+            election.status === 'completed'
+              ? 'bg-gray-500/20 text-gray-300 border border-gray-500/30'
+              : election.status === 'ongoing'
+              ? 'bg-green-500/20 text-green-300 border border-green-500/30'
+              : 'bg-blue-500/20 text-blue-300 border border-blue-500/30'
+          }`}>
+            {election.status === 'completed' ? 'Completed' 
+             : election.status === 'ongoing' ? 'Ongoing' 
+             : 'Upcoming'}
+          </span>
+          {election.hasVoted && election.status === 'ongoing' && (
+            <span className="px-3 py-1 text-xs font-medium rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+              ✓ Voted
+            </span>
+          )}
+        </div>
       </div>
 
-      {/* Election Details */}
-      <p className="text-gray-400 mb-4">{election.description}</p>
+      <p className="text-gray-400 mb-4">Election for {election.position_name} position in {election.name}</p>
       
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6 text-sm text-gray-500">
-        <div>
-          <span className="text-gray-400">Club:</span>
-          <p className="text-white font-medium">{election.club}</p>
+        <div className="text-center">
+          <p className="text-gray-400 text-xs mb-1">Club</p>
+          <p className="text-white font-medium">{election.name}</p>
         </div>
-        <div>
-          <span className="text-gray-400">Total Votes:</span>
-          <p className="text-white font-medium">{election.totalVotes}</p>
+        <div className="text-center">
+          <p className="text-gray-400 text-xs mb-1">Candidates</p>
+          <p className="text-white font-medium">{election.candidates?.length || 0}</p>
         </div>
-        <div>
-          <span className="text-gray-400">Candidates:</span>
-          <p className="text-white font-medium">{election.candidates.length}</p>
+        <div className="text-center">
+          <p className="text-gray-400 text-xs mb-1">Start Date</p>
+          <p className="text-white font-medium">{new Date(election.start_time).toLocaleDateString()}</p>
         </div>
-        <div>
-          <span className="text-gray-400">Deadline:</span>
-          <p className="text-white font-medium">{new Date(election.deadline).toLocaleDateString()}</p>
+        <div className="text-center">
+          <p className="text-gray-400 text-xs mb-1">End Date</p>
+          <p className="text-white font-medium">{new Date(election.end_time).toLocaleDateString()}</p>
         </div>
       </div>
 
       {/* Voting Section */}
-      {!election.hasVoted && (
-        <div>
+      <div>
           <div 
             className="bg-gray-800/30 border border-gray-700 rounded-lg p-4 mb-4 cursor-pointer hover:bg-gray-800/50 transition-colors duration-200"
             onClick={() => setExpanded(!expanded)}
@@ -91,29 +107,35 @@ const ElectionCard: React.FC<ElectionCardProps> = ({
           {/* Candidates List */}
           {expanded && (
             <div className="space-y-3 mb-6 transition-all duration-300">
-              {election.candidates.map((candidate) => (
+              {election.candidates?.map((candidate) => (
                 <div
-                  key={candidate.id}
-                  className={`border rounded-lg p-4 cursor-pointer transition-all duration-200 ${
-                    selectedCandidate === candidate.id
-                      ? 'border-white bg-gray-800/50'
-                      : 'border-gray-700 hover:border-gray-600'
+                  key={candidate.candidate_id}
+                  className={`border rounded-lg p-4 transition-all duration-200 ${
+                    election.status !== 'ongoing' || election.hasVoted
+                      ? 'cursor-not-allowed opacity-60 border-gray-800'
+                      : selectedCandidate === candidate.candidate_id
+                      ? 'cursor-pointer border-white bg-gray-800/50'
+                      : 'cursor-pointer border-gray-700 hover:border-gray-600'
                   }`}
-                  onClick={() => onCandidateSelect(candidate.id)}
+                  onClick={() => {
+                    if (election.status === 'ongoing' && !election.hasVoted) {
+                      onCandidateSelect(candidate.candidate_id);
+                    }
+                  }}
                 >
                   <div className="flex items-start">
                     <div className={`w-4 h-4 rounded-full border-2 mr-3 mt-1 flex-shrink-0 ${
-                      selectedCandidate === candidate.id
+                      selectedCandidate === candidate.candidate_id
                         ? 'border-white bg-white'
                         : 'border-gray-600'
                     }`}>
-                      {selectedCandidate === candidate.id && (
+                      {selectedCandidate === candidate.candidate_id && (
                         <div className="w-2 h-2 bg-black rounded-full m-0.5"></div>
                       )}
                     </div>
                     <div className="flex-1">
-                      <h5 className="font-medium text-white mb-2">{candidate.name}</h5>
-                      <p className="text-gray-400 text-sm">{candidate.description}</p>
+                      <h5 className="font-medium text-white mb-2">{candidate.candidate_name}</h5>
+                      <p className="text-gray-400 text-sm">{candidate.manifesto}</p>
                     </div>
                   </div>
                 </div>
@@ -125,7 +147,7 @@ const ElectionCard: React.FC<ElectionCardProps> = ({
           {expanded && (
             <button
               onClick={onVote}
-              disabled={selectedCandidate === null || voting}
+              disabled={selectedCandidate === null || voting || election.status !== 'ongoing' || election.hasVoted}
               className="w-full bg-white text-black font-semibold py-3 px-6 rounded-lg transition-colors duration-200 disabled:bg-gray-600 disabled:cursor-not-allowed cursor-pointer"
             >
               {voting ? (
@@ -133,16 +155,22 @@ const ElectionCard: React.FC<ElectionCardProps> = ({
                   <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-black mr-2"></div>
                   Casting Vote...
                 </div>
+              ) : election.hasVoted ? (
+                'Already Voted'
+              ) : election.status === 'upcoming' ? (
+                'Election Not Started'
+              ) : election.status === 'completed' ? (
+                'Election Ended'
               ) : (
                 'Cast Vote'
               )}
             </button>
           )}
         </div>
-      )}
 
-      {/* Already Voted Message */}
-      {election.hasVoted && (
+      {/* Election Status Messages */}
+      <div className="mt-6">
+      {election.hasVoted && election.status === 'ongoing' && (
         <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-4 text-center">
           <div className="flex items-center justify-center mb-2">
             <svg className="w-6 h-6 text-green-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -153,7 +181,32 @@ const ElectionCard: React.FC<ElectionCardProps> = ({
           <p className="text-green-300 text-sm">Thank you for participating in this election!</p>
         </div>
       )}
+      
+      {election.status === 'upcoming' && (
+        <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4 text-center">
+          <div className="flex items-center justify-center mb-2">
+            <svg className="w-6 h-6 text-blue-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span className="text-blue-400 font-medium">Election Upcoming</span>
+          </div>
+          <p className="text-blue-300 text-sm">This election will start on {new Date(election.start_time).toLocaleDateString()}</p>
+        </div>
+      )}
+      
+      {election.status === 'completed' && (
+        <div className="bg-gray-500/10 border border-gray-500/30 rounded-lg p-4 text-center">
+          <div className="flex items-center justify-center mb-2">
+            <svg className="w-6 h-6 text-gray-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+            <span className="text-gray-400 font-medium">Election Completed</span>
+          </div>
+          <p className="text-gray-300 text-sm">This election ended on {new Date(election.end_time).toLocaleDateString()}</p>
+        </div>
+      )}
     </div>
+  </div>
   );
 };
 
@@ -165,100 +218,44 @@ const Voting = () => {
   const [voting, setVoting] = useState(false);
   const [activeTab, setActiveTab] = useState<'active' | 'completed'>('active');
 
-  // Mock data - replace with actual API calls
+  // Fetch elections from backend API
   useEffect(() => {
-    const mockElections: Election[] = [
-      {
-        id: 1,
-        title: "Student Council President Election",
-        description: "Vote for the next Student Council President who will represent all students.",
-        club: "Student Body",
-        deadline: "2024-01-15",
-        hasVoted: false,
-        isActive: true,
-        totalVotes: 245,
-        candidates: [
-          {
-            id: 1,
-            name: "Alice Johnson",
-            description: "Computer Science major with 3 years of student government experience. Focused on improving campus facilities and student services.",
-            votes: 89
+    const fetchElections = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch('http://127.0.0.1:5000/election/all', {
+          method: 'GET',
+          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json',
           },
-          {
-            id: 2,
-            name: "Bob Smith",
-            description: "Business Administration student passionate about student welfare and academic excellence initiatives.",
-            votes: 76
-          },
-          {
-            id: 3,
-            name: "Carol Davis",
-            description: "Engineering student advocating for better technology resources and sustainable campus practices.",
-            votes: 80
-          }
-        ]
-      },
-      {
-        id: 2,
-        title: "Tech Club Leadership",
-        description: "Select the new leadership team for the Technology Club.",
-        club: "Tech Club",
-        deadline: "2024-01-20",
-        hasVoted: true,
-        isActive: true,
-        totalVotes: 89,
-        candidates: [
-          {
-            id: 4,
-            name: "David Wilson",
-            description: "Full-stack developer with experience in organizing tech workshops and hackathons.",
-            votes: 45
-          },
-          {
-            id: 5,
-            name: "Eva Brown",
-            description: "AI/ML enthusiast focused on bringing cutting-edge technology education to students.",
-            votes: 44
-          }
-        ]
-      },
-      {
-        id: 3,
-        title: "Cultural Committee Head",
-        description: "Choose the head for organizing cultural events and festivals.",
-        club: "Cultural Committee",
-        deadline: "2024-01-25",
-        hasVoted: false,
-        isActive: true,
-        totalVotes: 156,
-        candidates: [
-          {
-            id: 6,
-            name: "Frank Miller",
-            description: "Arts student with extensive experience in event management and cultural programming.",
-            votes: 62
-          },
-          {
-            id: 7,
-            name: "Grace Lee",
-            description: "Music and theater enthusiast committed to diverse and inclusive cultural celebrations.",
-            votes: 58
-          },
-          {
-            id: 8,
-            name: "Henry Chen",
-            description: "Photography and media specialist focused on documenting and promoting campus culture.",
-            votes: 36
-          }
-        ]
-      }
-    ];
+        });
 
-    // Simulate API delay
-    setTimeout(() => {
-      setElections(mockElections);
-      setLoading(false);
-    }, 1000);
+        if (response.ok) {
+          const electionsData: Election[] = await response.json();
+          
+          // Process elections and add calculated fields
+          const processedElections = electionsData.map(election => ({
+            ...election,
+            hasVoted: false, // TODO: Check if user has voted
+            totalVotes: 0, // TODO: Calculate from candidates
+            candidates: [], // TODO: Fetch candidates for each election
+          }));
+          
+          setElections(processedElections);
+        } else {
+          console.error('Failed to fetch elections:', response.statusText);
+          setElections([]);
+        }
+      } catch (error) {
+        console.error('Error fetching elections:', error);
+        setElections([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchElections();
   }, []);
 
   const handleVote = async () => {
@@ -272,8 +269,8 @@ const Voting = () => {
     // Update election status
     setElections(prev => 
       prev.map(election => 
-        election.id === selectedElection.id 
-          ? { ...election, hasVoted: true, totalVotes: election.totalVotes + 1 }
+        election.election_id === selectedElection.election_id 
+          ? { ...election, hasVoted: true, totalVotes: (election.totalVotes || 0) + 1 }
           : election
       )
     );
@@ -283,8 +280,13 @@ const Voting = () => {
     setVoting(false);
   };
 
-  const activeElections = elections.filter(e => e.isActive);
-  const completedElections = elections.filter(e => !e.isActive);
+  // Separate elections by status and prioritize ongoing first
+  const ongoingElections = elections.filter(e => e.status === 'ongoing');
+  const upcomingElections = elections.filter(e => e.status === 'upcoming');
+  const completedElections = elections.filter(e => e.status === 'completed');
+  
+  // Combine ongoing and upcoming for active tab, with ongoing first
+  const activeElections = [...ongoingElections, ...upcomingElections];
 
   if (loading) {
     return (
@@ -317,7 +319,7 @@ const Voting = () => {
                   : 'text-gray-300 hover:text-white hover:bg-gray-700'
               }`}
             >
-              Active Elections ({activeElections.length})
+              Active Elections ({ongoingElections.length + upcomingElections.length})
             </button>
             <button
               onClick={() => setActiveTab('completed')}
@@ -335,22 +337,72 @@ const Voting = () => {
         {/* Active Elections */}
         {activeTab === 'active' && (
           <div className="space-y-8">
-            <h2 className="text-xl font-semibold text-white">Available Elections</h2>
-            {activeElections.map((election) => (
-              <ElectionCard
-                key={election.id}
-                election={election}
-                selectedCandidate={selectedElection?.id === election.id ? selectedCandidate : null}
-                onCandidateSelect={(candidateId) => {
-                  if (!election.hasVoted) {
-                    setSelectedElection(election);
-                    setSelectedCandidate(candidateId);
-                  }
-                }}
-                onVote={() => handleVote()}
-                voting={voting && selectedElection?.id === election.id}
-              />
-            ))}
+            {/* Ongoing Elections Section */}
+            {ongoingElections.length > 0 && (
+              <div>
+                <h2 className="text-xl font-semibold text-white mb-6 flex items-center">
+                  <span className="w-3 h-3 bg-green-500 rounded-full mr-3"></span>
+                  Ongoing Elections ({ongoingElections.length})
+                </h2>
+                <div className="space-y-6">
+                  {ongoingElections.map((election) => (
+                    <ElectionCard
+                      key={election.election_id}
+                      election={election}
+                      selectedCandidate={selectedElection?.election_id === election.election_id ? selectedCandidate : null}
+                      onCandidateSelect={(candidateId) => {
+                        if (!election.hasVoted && election.status === 'ongoing') {
+                          setSelectedElection(election);
+                          setSelectedCandidate(candidateId);
+                        }
+                      }}
+                      onVote={() => handleVote()}
+                      voting={voting && selectedElection?.election_id === election.election_id}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Upcoming Elections Section */}
+            {upcomingElections.length > 0 && (
+              <div>
+                <h2 className="text-xl font-semibold text-white mb-6 flex items-center">
+                  <span className="w-3 h-3 bg-blue-500 rounded-full mr-3"></span>
+                  Upcoming Elections ({upcomingElections.length})
+                </h2>
+                <div className="space-y-6">
+                  {upcomingElections.map((election) => (
+                    <ElectionCard
+                      key={election.election_id}
+                      election={election}
+                      selectedCandidate={selectedElection?.election_id === election.election_id ? selectedCandidate : null}
+                      onCandidateSelect={(candidateId) => {
+                        if (!election.hasVoted && election.status === 'ongoing') {
+                          setSelectedElection(election);
+                          setSelectedCandidate(candidateId);
+                        }
+                      }}
+                      onVote={() => handleVote()}
+                      voting={voting && selectedElection?.election_id === election.election_id}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* No Active Elections Message */}
+            {activeElections.length === 0 && (
+              <div className="text-center py-12">
+                <div className="w-16 h-16 bg-gray-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                  </svg>
+                </div>
+                <h3 className="text-lg font-medium text-white mb-2">No Active Elections</h3>
+                <p className="text-gray-400">There are currently no ongoing or upcoming elections available.</p>
+              </div>
+            )}
           </div>
         )}
 
@@ -371,4 +423,4 @@ const Voting = () => {
   );
 };
 
-export default Voting;
+export default Voting
