@@ -1,5 +1,3 @@
-# app/routes/election_routes.py
-
 from flask import Blueprint, jsonify, request
 from ..services.election_service import (
     create_election_service,
@@ -10,6 +8,7 @@ from ..services.election_service import (
     delete_election_service,
     update_election_status_service,
 )
+from ..services.candidate_service import register_candidate_service  , get_election_candidates_service
 
 election_bp = Blueprint("election", __name__)
 
@@ -69,7 +68,7 @@ def get_club_elections_handler(club_id):
 
 
 # ---------------- UPDATE ---------------- #
-@election_bp.route("/<int:election_id>/status", methods=["PUT"])
+@election_bp.route("/<int:election_id>/status", methods=["PATCH"])
 def update_election_status_handler(election_id):
     data = request.get_json() or {}
     new_status = data.get("status")
@@ -101,3 +100,24 @@ def delete_election_handler(election_id):
         return jsonify(result[0]), result[1]
 
     return jsonify({"message": "Election deleted successfully"}), 200
+
+
+#----------------CANDIDATE ROUTES----------------#
+
+@election_bp.route("/<int:election_id>/candidates", methods=["POST"])
+def register_candidate(election_id):
+    data = request.get_json()
+    reg_no = data.get("reg_no")
+    manifesto = data.get("manifesto")
+
+    if not reg_no:
+        return jsonify({"error": "Missing reg_no"}), 400
+
+    result, status = register_candidate_service(election_id, reg_no, manifesto)
+    return jsonify(result), status
+
+@election_bp.route("/<int:election_id>/candidates", methods=["GET"])
+def get_election_candidates(election_id):
+    candidates, status = get_election_candidates_service(election_id)
+    return jsonify(candidates), status
+

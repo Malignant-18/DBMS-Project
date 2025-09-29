@@ -1,15 +1,17 @@
 from flask import Blueprint, jsonify, request
-from ..services.votes_service import add_voting_record,check_already_voted
-from ..services.candidate_service import increement_vote
+from ..services.votes_service import vote_service
 
-vote_bp = Blueprint("votes",__name__)
 
-@vote_bp.route('/<reg_no>/<int:election_id>/<int:candidate_id>/votes',methods=["POST","OPTIONS"])
-def recording_vote(reg_no,election_id,candidate_id):
+vote_bp = Blueprint("vote",__name__)
+
+@vote_bp.route('/cast/<int:election_id>',methods=["POST","OPTIONS"])
+def recording_vote(election_id):
     if request.method == "OPTIONS":
         return "", 200
-    if (not check_already_voted(reg_no,election_id)):
-        add_voting_record(reg_no,election_id)
-        increement_vote(candidate_id)
-        return jsonify({"msg":"vote recorded"})
-    return jsonify({"msg":"already voted"})
+    data = request.get_json()
+    reg_no = data.get("reg_no")
+    candidate_id = data.get("candidate_id")
+    if not all([reg_no,candidate_id]):
+        return jsonify({"error": "Missing required fields"}), 400
+    success , status  = vote_service(reg_no,election_id,candidate_id)
+    return jsonify(success),status

@@ -37,7 +37,7 @@ def get_candidates_by_election(election_id):
     return candidates
 
 
-def get_candidate_by_id(candidate_id):
+def get_candidate_by_candidate_id(candidate_id):
     conn, cur = get_db_connection()
     cur.execute("""
         SELECT
@@ -55,9 +55,27 @@ def get_candidate_by_id(candidate_id):
     conn.close()
     return dict(candidate) if candidate else None
 
-def increase_vote(candidate_id):
+def get_single_candidate(election_id , reg_no):
     conn, cur = get_db_connection()
-    cur.execute("UPDATE Candidates SET total_votes=total_votes+1 where candidate_id=?",(candidate_id))
+    cur.execute("""
+        SELECT
+            c.candidate_id,
+            c.election_id,
+            u.reg_no,
+            u.name AS candidate_name,
+            c.manifesto,
+            c.total_votes
+        FROM Candidates c
+        JOIN Users u ON c.reg_no = u.reg_no
+        WHERE c.election_id = ? AND c.reg_no = ?
+    """, (election_id , reg_no))
+    candidate = cur.fetchone()
+    conn.close()
+    return dict(candidate) if candidate else None
+
+def increment_vote(candidate_id):
+    conn, cur = get_db_connection()
+    cur.execute("UPDATE Candidates SET total_votes=total_votes+1 WHERE candidate_id=?", (candidate_id,))
     conn.commit()
     return True
 
