@@ -131,3 +131,11 @@ def update_election_status(election_id, status):
     conn.commit()
     conn.close()
     return True
+
+
+def get_club_id_of_election(election_id):
+    conn, cur = get_db_connection()
+    cur.execute("SELECT club_id FROM Elections WHERE election_id = ?", (election_id,))
+    row = cur.fetchone()
+    conn.close()
+    return row["club_id"] if row else None

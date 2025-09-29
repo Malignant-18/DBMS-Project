@@ -1,5 +1,6 @@
-from ..models.election_model import create_election , get_all_elections, get_elections_by_status , get_election_by_id , delete_election , get_elections_by_club , update_election_status
+from ..models.election_model import create_election , get_all_elections, get_elections_by_status , get_election_by_id , delete_election , get_elections_by_club , update_election_status , get_club_id_of_election
 from ..models.member_model import get_member_role
+from ..models.user_model import get_user_role
 
 def create_election_service(club_id, position_id, reg_no, start_time, end_time):
     
@@ -46,3 +47,7 @@ def update_election_status_service(election_id, new_status, reg_no, club_id):
     if user_role not in ("Admin", "Head"):
         return {"error": "Unauthorized"}, 403
     return update_election_status(election_id, new_status)
+
+def get_club_id_of_election_service(election_id):
+    election_club_id = get_club_id_of_election(election_id)
+    return election_club_id

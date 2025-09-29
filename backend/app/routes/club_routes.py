@@ -57,12 +57,16 @@ def get_club_members(club_id):
     members = get_club_approved_members(club_id)
     return jsonify(members), 200
 
-@club_bp.route("/<int:club_id>/members/<reg_no>/status", methods=["PATCH", "OPTIONS"])
-def update_member_status(club_id, reg_no):
+@club_bp.route("/<int:club_id>/membership/status", methods=["PATCH", "OPTIONS"])
+def update_member_status(club_id):
     if request.method == "OPTIONS":
         return "", 200
     data = request.get_json()
+    reg_no = data.get("reg_no")
     status = data.get("status")
+
+    if not reg_no:
+        return jsonify(msg="Missing registration number"), 400
 
     if not status:
         return jsonify(msg="Missing status"), 400
