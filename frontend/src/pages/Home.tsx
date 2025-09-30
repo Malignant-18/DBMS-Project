@@ -1,12 +1,109 @@
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { checkVoteStatus } from '../services/candidateService';
+
+interface HomeElection {
+  election_id: number;
+  position_name: string;
+  name: string; // club name
+  start_time: string;
+  end_time: string;
+  status: 'upcoming' | 'ongoing' | 'completed';
+  totalVotes: number;
+  candidateCount: number;
+  hasVoted: boolean;
+}
 
 const Home = () => {
   const { state } = useAuth();
   const user = state.user;
+  const [activeElections, setActiveElections] = useState<HomeElection[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch elections data
+  useEffect(() => {
+    const fetchElections = async () => {
+      try {
+        setLoading(true);
+        
+        const response = await fetch('http://127.0.0.1:5000/election/all', {
+          method: 'GET',
+          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (response.ok) {
+          const electionsData = await response.json();
+          
+          // Process elections and add vote status and candidate count
+          const processedElections = await Promise.all(
+            electionsData
+              .filter((election: any) => election.status === 'ongoing' || election.status === 'upcoming')
+              .sort((a: any, b: any) => {
+                // Sort so ongoing elections come first, then upcoming
+                if (a.status === 'ongoing' && b.status === 'upcoming') return -1;
+                if (a.status === 'upcoming' && b.status === 'ongoing') return 1;
+                return 0;
+              })
+              .map(async (election: any) => {
+                // Fetch candidates for this election
+                const candidatesResponse = await fetch(`http://127.0.0.1:5000/election/${election.election_id}/candidates`, {
+                  method: 'GET',
+                  credentials: 'include',
+                  headers: {
+                    'Content-Type': 'application/json',
+                  },
+                });
+
+                let candidateCount = 0;
+                let totalVotes = 0;
+                if (candidatesResponse.ok) {
+                  const candidates = await candidatesResponse.json();
+                  candidateCount = candidates.length;
+                  totalVotes = candidates.reduce((sum: number, candidate: any) => sum + (candidate.total_votes || 0), 0);
+                }
+
+                // Check if user has voted (only for ongoing elections)
+                let hasVoted = false;
+                if (election.status === 'ongoing' && user?.reg_no) {
+                  hasVoted = await checkVoteStatus(user.reg_no, election.election_id);
+                }
+
+                return {
+                  election_id: election.election_id,
+                  position_name: election.position_name,
+                  name: election.name,
+                  start_time: election.start_time,
+                  end_time: election.end_time,
+                  status: election.status,
+                  totalVotes,
+                  candidateCount,
+                  hasVoted,
+                };
+              })
+          );
+          
+          setActiveElections(processedElections);
+        } else {
+          console.error('Failed to fetch elections:', response.statusText);
+        }
+      } catch (error) {
+        console.error('Error fetching elections:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (user) {
+      fetchElections();
+    }
+  }, [user]);
 
   // If user is not loaded yet, show loading state
-  if (!user) {
+  if (!user || loading) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
         <div className="text-center">
@@ -17,29 +114,10 @@ const Home = () => {
     );
   }
 
-  const activeElections = [
-    { id: 1, title: "Student Council Elections", club: "Student Body", deadline: "2 days", votes: 245, candidates: 5, hasVoted: false },
-    { id: 2, title: "Tech Club Leadership", club: "Tech Club", deadline: "5 days", votes: 89, candidates: 3, hasVoted: true },
-    { id: 3, title: "Cultural Committee Head", club: "Cultural Committee", deadline: "1 week", votes: 156, candidates: 4, hasVoted: false }
-  ];
-
-  const pastElections = [
-    { id: 1, title: "Annual Sports Captain", club: "Sports Club", winner: "Alice Johnson", date: "2 weeks ago" },
-    { id: 2, title: "Debate Society President", club: "Debate Society", winner: "Mike Chen", date: "1 month ago" }
-  ];
-
-  const systemStats = {
-    totalUsers: 1247,
-    totalClubs: 15,
-    activeElections: 8,
-    completedElections: 23
-  };
-
-  const memberRequests = [
-    { id: 1, name: "Sarah Wilson", club: "Tech Club", date: "2 hours ago" },
-    { id: 2, name: "David Brown", club: "Tech Club", date: "5 hours ago" },
-    { id: 3, name: "Emma Davis", club: "Cultural Committee", date: "1 day ago" }
-  ];
+  // Calculate dynamic stats from real data
+  const ongoingElections = activeElections.filter(e => e.status === 'ongoing');
+  const votedElections = activeElections.filter(e => e.hasVoted);
+  const pendingElections = activeElections.filter(e => e.status === 'ongoing' && !e.hasVoted);
 
   return (
     <div className="min-h-screen bg-black">
@@ -56,8 +134,8 @@ const Home = () => {
                 </div>
               </div>
               <div className="ml-3">
-                <p className="text-xs font-medium text-gray-400">Active Elections</p>
-                <p className="text-xl font-semibold text-white">{activeElections.length}</p>
+                <p className="text-xs font-medium text-gray-400">Ongoing Elections</p>
+                <p className="text-xl font-semibold text-white">{ongoingElections.length}</p>
               </div>
             </div>
           </div>
@@ -89,7 +167,7 @@ const Home = () => {
               </div>
               <div className="ml-3">
                 <p className="text-xs font-medium text-gray-400">Votes Cast</p>
-                <p className="text-xl font-semibold text-white">{activeElections.filter(e => e.hasVoted).length}</p>
+                <p className="text-xl font-semibold text-white">{votedElections.length}</p>
               </div>
             </div>
           </div>
@@ -105,7 +183,7 @@ const Home = () => {
               </div>
               <div className="ml-3">
                 <p className="text-xs font-medium text-gray-400">Pending Votes</p>
-                <p className="text-xl font-semibold text-white">{activeElections.filter(e => !e.hasVoted).length}</p>
+                <p className="text-xl font-semibold text-white">{pendingElections.length}</p>
               </div>
             </div>
           </div>
@@ -120,36 +198,91 @@ const Home = () => {
               </div>
               <div className="p-6">
                 <div className="space-y-3">
-                  {activeElections.map((election) => (
-                    <div key={election.id} className="border border-gray-700 rounded-lg p-4 hover:border-gray-600 transition-colors duration-200" style={{backgroundColor: 'hsla(0,0%,6.9%, 1)'}}>
-                      <div className="flex justify-between items-start mb-3">
-                        <h3 className="text-base font-medium text-white">{election.title}</h3>
-                        <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                          election.hasVoted 
-                            ? 'bg-green-500/20 text-green-300 border border-green-500/30' 
-                            : 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
-                        }`}>
-                          {election.hasVoted ? 'Voted' : 'Pending'}
-                        </span>
-                      </div>
-                      <p className="text-sm text-gray-400 mb-3">{election.club}</p>
-                      <div className="flex justify-between items-center text-xs text-gray-500 mb-4">
-                        <span>{election.votes} votes cast</span>
-                        <span>{election.candidates} candidates</span>
-                        <span>Ends in {election.deadline}</span>
-                      </div>
-                      <div className="flex gap-2">
-                        {!election.hasVoted && (
-                          <Link to="/voting" className="bg-white text-black px-3 py-1.5 rounded-md text-sm font-medium hover:bg-gray-200 transition-colors duration-200">
-                            Vote Now
-                          </Link>
-                        )}
-                        <button className="border border-gray-600 text-gray-300 px-3 py-1.5 rounded-md text-sm font-medium hover:bg-gray-700 hover:text-white transition-colors duration-200">
-                          View Details
-                        </button>
-                      </div>
+                  {activeElections.length > 0 ? (
+                    activeElections.map((election) => {
+                      const now = new Date();
+                      let deadline = '';
+                      let deadlineLabel = '';
+                      
+                      if (election.status === 'upcoming') {
+                        // For upcoming elections, show "starts in"
+                        const startDate = new Date(election.start_time);
+                        const timeDiff = startDate.getTime() - now.getTime();
+                        const daysLeft = Math.ceil(timeDiff / (1000 * 3600 * 24));
+                        
+                        if (daysLeft > 0) {
+                          deadline = daysLeft === 1 ? '1 day' : `${daysLeft} days`;
+                          deadlineLabel = 'Starts in';
+                        } else {
+                          deadline = 'Starting soon';
+                          deadlineLabel = '';
+                        }
+                      } else {
+                        // For ongoing elections, show "ends in"
+                        const endDate = new Date(election.end_time);
+                        const timeDiff = endDate.getTime() - now.getTime();
+                        const daysLeft = Math.ceil(timeDiff / (1000 * 3600 * 24));
+                        
+                        if (daysLeft > 0) {
+                          deadline = daysLeft === 1 ? '1 day' : `${daysLeft} days`;
+                          deadlineLabel = 'Ends in';
+                        } else {
+                          deadline = 'Ended';
+                          deadlineLabel = '';
+                        }
+                      }
+
+                      return (
+                        <div key={election.election_id} className="border border-gray-700 rounded-lg p-4 hover:border-gray-600 transition-colors duration-200" style={{backgroundColor: 'hsla(0,0%,6.9%, 1)'}}>
+                          <div className="flex justify-between items-start mb-3">
+                            <h3 className="text-base font-medium text-white">{election.position_name}</h3>
+                            <div className="flex gap-2">
+                              <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                                election.status === 'completed'
+                                  ? 'bg-gray-500/20 text-gray-300 border border-gray-500/30'
+                                  : election.status === 'ongoing'
+                                  ? 'bg-green-500/20 text-green-300 border border-green-500/30'
+                                  : 'bg-blue-500/20 text-blue-300 border border-blue-500/30'
+                              }`}>
+                                {election.status === 'completed' ? 'Completed' 
+                                 : election.status === 'ongoing' ? 'Ongoing' 
+                                 : 'Upcoming'}
+                              </span>
+                              {election.status === 'ongoing' && (
+                                <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                                  election.hasVoted 
+                                    ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' 
+                                    : 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+                                }`}>
+                                  {election.hasVoted ? 'Voted' : 'Pending'}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                          <p className="text-sm text-gray-400 mb-3">{election.name}</p>
+                          <div className="flex justify-between items-center text-xs text-gray-500 mb-4">
+                            <span>{election.totalVotes} votes cast</span>
+                            <span>{election.candidateCount} candidates</span>
+                            <span>{deadlineLabel} {deadline}</span>
+                          </div>
+                          <div className="flex gap-2">
+                            {election.status === 'ongoing' && !election.hasVoted && (
+                              <Link to="/voting" className="bg-white text-black px-3 py-1.5 rounded-md text-sm font-medium hover:bg-gray-200 transition-colors duration-200">
+                                Vote Now
+                              </Link>
+                            )}
+                            <Link to="/voting" className="border border-gray-600 text-gray-300 px-3 py-1.5 rounded-md text-sm font-medium hover:bg-gray-700 hover:text-white transition-colors duration-200 cursor-pointer">
+                              View Details
+                            </Link>
+                          </div>
+                        </div>
+                      );
+                    })
+                  ) : (
+                    <div className="text-center py-8">
+                      <p className="text-gray-400">No active elections at the moment</p>
                     </div>
-                  ))}
+                  )}
                 </div>
               </div>
             </div>
@@ -253,25 +386,16 @@ const Home = () => {
               </div>
             </div> */}
 
-            {/* Past Elections */}
+            {/* Recent Results */}
             <div className="border border-gray-800 rounded-lg" style={{backgroundColor: 'hsla(0,0%,6.9%, 1)'}}>
               <div className="px-6 py-4 border-b border-gray-800">
                 <h2 className="text-lg font-medium text-white">Recent Results</h2>
               </div>
               <div className="p-6">
-                <div className="space-y-3">
-                  {pastElections.map((election) => (
-                    <div key={election.id} className="p-3 border border-gray-700 rounded-lg hover:border-gray-600 transition-colors duration-200" style={{backgroundColor: 'hsla(0,0%,6.9%, 1)'}}>
-                      <h4 className="font-medium text-white">{election.title}</h4>
-                      <p className="text-sm text-gray-400">{election.club}</p>
-                      <p className="text-sm text-green-400 font-medium">Winner: {election.winner}</p>
-                      <p className="text-xs text-gray-500">{election.date}</p>
-                    </div>
-                  ))}
+                <div className="text-center py-8">
+                  <p className="text-gray-400">No recent results to display</p>
+                  <p className="text-sm text-gray-500 mt-2">Completed elections will appear here</p>
                 </div>
-                <button className="w-full mt-4 border border-gray-600 text-gray-300 py-2 rounded-md text-sm font-medium hover:bg-gray-700 hover:text-white transition-colors duration-200">
-                  View All Results
-                </button>
               </div>
             </div>
           </div>

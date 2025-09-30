@@ -32,16 +32,17 @@ def create_app():
     # --- Session Check Endpoint ---
     @app.route("/me", methods=["GET"])
     def me():
-        from .models.user_model import get_user_by_reg_no
+        from .models.user_model import get_user_by_reg_no, get_user_role
 
         if "reg_no" in session:
             user_data = get_user_by_reg_no(session["reg_no"])
             if user_data:
+                user_role = get_user_role(session["reg_no"]) or "user"  # Default to 'user' if no role found
                 return jsonify({
                     "user": {
                         "reg_no": user_data[0],
                         "name": user_data[2],
-                        "role": "student"
+                        "role": user_role
                     }
                 }), 200
 

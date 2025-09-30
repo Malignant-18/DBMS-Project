@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { useAuth } from '../contexts/AuthContext';
+import { fetchCandidatesForElection, submitVote, checkVoteStatus } from '../services/candidateService';
 
 interface Candidate {
   candidate_id: number;
@@ -92,6 +94,7 @@ const ElectionCard: React.FC<ElectionCardProps> = ({
 
       {/* Voting Section */}
       <div>
+        {!election.hasVoted && (
           <div 
             className="bg-gray-800/30 border border-gray-700 rounded-lg p-4 mb-4 cursor-pointer hover:bg-gray-800/50 transition-colors duration-200"
             onClick={() => setExpanded(!expanded)}
@@ -103,22 +106,23 @@ const ElectionCard: React.FC<ElectionCardProps> = ({
               </svg>
             </div>
           </div>
+        )}
 
-          {/* Candidates List */}
-          {expanded && (
+          {/* Candidates List - Only show if user hasn't voted*/}
+          {expanded && !election.hasVoted && (
             <div className="space-y-3 mb-6 transition-all duration-300">
               {election.candidates?.map((candidate) => (
                 <div
                   key={candidate.candidate_id}
                   className={`border rounded-lg p-4 transition-all duration-200 ${
-                    election.status !== 'ongoing' || election.hasVoted
+                    election.status !== 'ongoing'
                       ? 'cursor-not-allowed opacity-60 border-gray-800'
                       : selectedCandidate === candidate.candidate_id
                       ? 'cursor-pointer border-white bg-gray-800/50'
                       : 'cursor-pointer border-gray-700 hover:border-gray-600'
                   }`}
                   onClick={() => {
-                    if (election.status === 'ongoing' && !election.hasVoted) {
+                    if (election.status === 'ongoing') {
                       onCandidateSelect(candidate.candidate_id);
                     }
                   }}
@@ -143,11 +147,11 @@ const ElectionCard: React.FC<ElectionCardProps> = ({
             </div>
           )}
 
-          {/* Vote Button */}
-          {expanded && (
+          {/* Vote Button - Only show if user hasn't voted */}
+          {expanded && !election.hasVoted && (
             <button
               onClick={onVote}
-              disabled={selectedCandidate === null || voting || election.status !== 'ongoing' || election.hasVoted}
+              disabled={selectedCandidate === null || voting || election.status !== 'ongoing'}
               className="w-full bg-white text-black font-semibold py-3 px-6 rounded-lg transition-colors duration-200 disabled:bg-gray-600 disabled:cursor-not-allowed cursor-pointer"
             >
               {voting ? (
@@ -155,8 +159,6 @@ const ElectionCard: React.FC<ElectionCardProps> = ({
                   <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-black mr-2"></div>
                   Casting Vote...
                 </div>
-              ) : election.hasVoted ? (
-                'Already Voted'
               ) : election.status === 'upcoming' ? (
                 'Election Not Started'
               ) : election.status === 'completed' ? (
@@ -211,6 +213,8 @@ const ElectionCard: React.FC<ElectionCardProps> = ({
 };
 
 const Voting = () => {
+  const { state } = useAuth();
+  const user = state.user;
   const [elections, setElections] = useState<Election[]>([]);
   const [selectedElection, setSelectedElection] = useState<Election | null>(null);
   const [selectedCandidate, setSelectedCandidate] = useState<number | null>(null);
@@ -218,11 +222,30 @@ const Voting = () => {
   const [voting, setVoting] = useState(false);
   const [activeTab, setActiveTab] = useState<'active' | 'completed'>('active');
 
+  // Fetch candidates for a specific election using the service
+  const fetchCandidates = (electionId: number): Promise<Candidate[]> => {
+    return fetchCandidatesForElection(electionId);
+  };
+
+  // Check if user has voted in a specific election
+  const checkUserVoteStatus = async (electionId: number): Promise<boolean> => {
+    if (!user?.reg_no) return false;
+    
+    try {
+      // Use the service function to check vote status
+      return await checkVoteStatus(user.reg_no, electionId);
+    } catch (error) {
+      console.error(`Error checking vote status for election ${electionId}:`, error);
+      return false;
+    }
+  };
+
   // Fetch elections from backend API
   useEffect(() => {
     const fetchElections = async () => {
       try {
         setLoading(true);
+        
         const response = await fetch('http://127.0.0.1:5000/election/all', {
           method: 'GET',
           credentials: 'include',
@@ -234,13 +257,27 @@ const Voting = () => {
         if (response.ok) {
           const electionsData: Election[] = await response.json();
           
-          // Process elections and add calculated fields
-          const processedElections = electionsData.map(election => ({
-            ...election,
-            hasVoted: false, // TODO: Check if user has voted
-            totalVotes: 0, // TODO: Calculate from candidates
-            candidates: [], // TODO: Fetch candidates for each election
-          }));
+          // Fetch candidates for each election and check vote status
+          const processedElections = await Promise.all(
+            electionsData.map(async (election) => {
+              const candidates = await fetchCandidates(election.election_id);
+              
+              // Only check vote status for ongoing elections
+              let hasVoted = false;
+              if (election.status === 'ongoing') {
+                hasVoted = await checkUserVoteStatus(election.election_id);
+              }
+              
+              const totalVotes = candidates.reduce((sum, candidate) => sum + (candidate.total_votes || 0), 0);
+              
+              return {
+                ...election,
+                candidates,
+                hasVoted,
+                totalVotes,
+              };
+            })
+          );
           
           setElections(processedElections);
         } else {
@@ -255,29 +292,69 @@ const Voting = () => {
       }
     };
 
-    fetchElections();
-  }, []);
+    if (user?.reg_no) {
+      fetchElections();
+    } else {
+      setLoading(false);
+    }
+  }, [user]);
 
   const handleVote = async () => {
-    if (!selectedElection || selectedCandidate === null) return;
+    if (!selectedElection || selectedCandidate === null || !user?.reg_no) return;
 
     setVoting(true);
     
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    // Update election status
-    setElections(prev => 
-      prev.map(election => 
-        election.election_id === selectedElection.election_id 
-          ? { ...election, hasVoted: true, totalVotes: (election.totalVotes || 0) + 1 }
-          : election
-      )
-    );
-    
-    setSelectedElection(null);
-    setSelectedCandidate(null);
-    setVoting(false);
+    try {
+      const { success, data } = await submitVote(selectedElection.election_id, {
+        reg_no: user.reg_no,
+        candidate_id: selectedCandidate,
+      });
+
+      if (success) {
+        // Successfully voted - update the election status
+        setElections(prev => 
+          prev.map(election => 
+            election.election_id === selectedElection.election_id 
+              ? { 
+                  ...election, 
+                  hasVoted: true, 
+                  totalVotes: (election.totalVotes || 0) + 1,
+                  candidates: election.candidates?.map(candidate => 
+                    candidate.candidate_id === selectedCandidate
+                      ? { ...candidate, total_votes: (candidate.total_votes || 0) + 1 }
+                      : candidate
+                  ) || []
+                }
+              : election
+          )
+        );
+        
+        alert('Vote submitted successfully!');
+      } else {
+        // Handle voting errors
+        const errorMessage = data.error || data.msg || '';
+        if (errorMessage.toLowerCase().includes('already voted')) {
+          alert('You have already voted in this election.');
+          // Update the hasVoted status for this election
+          setElections(prev => 
+            prev.map(election => 
+              election.election_id === selectedElection.election_id 
+                ? { ...election, hasVoted: true }
+                : election
+            )
+          );
+        } else {
+          alert(errorMessage || 'Failed to submit vote. Please try again.');
+        }
+      }
+    } catch (error) {
+      console.error('Error submitting vote:', error);
+      alert('An error occurred while submitting your vote. Please try again.');
+    } finally {
+      setSelectedElection(null);
+      setSelectedCandidate(null);
+      setVoting(false);
+    }
   };
 
   // Separate elections by status and prioritize ongoing first
@@ -294,6 +371,17 @@ const Voting = () => {
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white mx-auto mb-4"></div>
           <p className="text-gray-400 text-sm">Loading elections...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-xl font-semibold text-white mb-2">Authentication Required</h2>
+          <p className="text-gray-400">Please log in to view and participate in elections.</p>
         </div>
       </div>
     );

@@ -200,7 +200,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           const user: User = {
             reg_no: data.user.reg_no,
             name: data.user.name,
-            role: data.user.role || 'student',
+            role: data.user.role || 'user',
             isAuthenticated: true,
           };
 
@@ -241,7 +241,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
               const user: User = {
                 reg_no: meData.user.reg_no,
                 name: meData.user.name,
-                role: meData.user.role || 'student',
+                role: meData.user.role || 'user',
                 isAuthenticated: true,
               };
 

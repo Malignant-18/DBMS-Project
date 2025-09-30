@@ -33,14 +33,15 @@ def login():
     session['reg_no'] = reg_no
     
     # Also return user data directly with the login response
-    from ..models.user_model import get_user_by_reg_no
+    from ..models.user_model import get_user_by_reg_no, get_user_role
     user_data = get_user_by_reg_no(reg_no)
     
     if user_data:
+        user_role = get_user_role(reg_no) or "user"  # Default to 'user' if no role found
         user_info = {
             "reg_no": user_data[0],
             "name": user_data[2],
-            "role": "student"
+            "role": user_role
         }
         return jsonify(msg="logged in", user=user_info), 200
     else:

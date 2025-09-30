@@ -123,7 +123,7 @@ const NavBar = () => {
                                         <div className="ml-3 text-left">
                                             <p className="text-sm font-medium text-white">{user.name}</p>
                                             <p className="text-xs text-gray-300">
-                                                {user.role === 'admin' ? 'Admin' : user.role === 'head' ? 'Club Head' : 'Student'}
+                                                {user.role === 'admin' ? 'Admin' : user.role === 'user' ? 'User' : (user.role ? user.role.charAt(0).toUpperCase() + user.role.slice(1) : 'Student')}
                                             </p>
                                         </div>
                                         <svg className="ml-2 h-4 w-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
