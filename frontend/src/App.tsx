@@ -6,7 +6,8 @@ import Register from './pages/Register'
 import Landing from './pages/Landing'
 import Clubs from './pages/Clubs'
 import Voting from './pages/Voting'
-import Notifications from './pages/Notifications'
+import ElectionManagement from './pages/ElectionManagement'
+import Results from './pages/Results'
 import ProtectedRoute from './components/ProtectedRoute'
 import PublicRoute from './components/PublicRoute'
 import { Routes, Route, BrowserRouter as Router, useLocation } from 'react-router-dom'
@@ -48,9 +49,14 @@ const AppContent=()=>{
             <Voting/>
           </ProtectedRoute>
         }/>
-        <Route path='/notifications' element={
+        <Route path='/election-management' element={
           <ProtectedRoute>
-            <Notifications/>
+            <ElectionManagement/>
+          </ProtectedRoute>
+        }/>
+        <Route path='/results/:electionId' element={
+          <ProtectedRoute>
+            <Results/>
           </ProtectedRoute>
         }/>
       </Routes>

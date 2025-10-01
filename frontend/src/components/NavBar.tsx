@@ -89,17 +89,25 @@ const NavBar = () => {
                                     Voting
                                 </div>
                             </NavLink>
-                            
-                            <NavLink to='/notifications' className={linkStyle}>
-                                <div className="flex items-center relative">
-                                    <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-5-5 5-5h-5m-6 0H9l5 5-5 5h5" />
-                                    </svg>
-                                    Notifications
-                                    {/* Notification badge */}
-                                    <span className="absolute -top-1 -right-1 bg-gradient-to-r from-pink-500 to-rose-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center shadow-lg">
-                                        3
-                                    </span>
+
+                            {/* Election Management/Results - Text changes based on user role */}
+                            <NavLink to='/election-management' className={linkStyle}>
+                                <div className="flex items-center">
+                                    {user.role === 'user' ? (
+                                        <>
+                                            <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                                            </svg>
+                                            Results
+                                        </>
+                                    ) : (
+                                        <>
+                                            <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                                            </svg>
+                                            Manage Elections
+                                        </>
+                                    )}
                                 </div>
                             </NavLink>
                         </div>
@@ -206,8 +214,8 @@ const NavBar = () => {
                         <NavLink to='/voting' className={mobileLinkStyle} onClick={() => setIsMobileMenuOpen(false)}>
                             Voting
                         </NavLink>
-                        <NavLink to='/notifications' className={mobileLinkStyle} onClick={() => setIsMobileMenuOpen(false)}>
-                            Notifications
+                        <NavLink to='/election-management' className={mobileLinkStyle} onClick={() => setIsMobileMenuOpen(false)}>
+                            {user.role === 'user' ? 'Results' : 'Manage Elections'}
                         </NavLink>
                     </div>
                     <div className="pt-4 pb-3 border-t border-gray-800" style={{backgroundColor: 'hsla(0,0%,6.9%,1)'}}>

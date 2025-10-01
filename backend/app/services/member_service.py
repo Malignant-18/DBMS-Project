@@ -14,6 +14,12 @@ def get_user_all_clubs(reg_no):
     
     return member_model.get_all_clubs_of_users(reg_no)
 
+def get_user_headed_clubs(reg_no):
+    """
+    Returns all clubs where the user is the head.
+    """
+    return member_model.get_clubs_headed_by_user(reg_no)
+
 def get_club_approved_members(club_id):
     
     return member_model.get_approved_members_of_club(club_id)

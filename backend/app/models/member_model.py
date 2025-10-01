@@ -87,4 +87,19 @@ def get_member_role(reg_no ,  club_id):
     role = cur.fetchone()
     conn.close()
     return role[0] if role else None
+
+def get_clubs_headed_by_user(reg_no):
+    """
+    Returns all clubs where the user is the head.
+    """
+    conn, cur = get_db_connection()
+    cur.execute("""
+        SELECT c.*, cm.role, cm.status
+        FROM Clubs c
+        JOIN ClubMemberships cm ON c.club_id = cm.club_id
+        WHERE cm.reg_no = ? AND cm.role = 'Head' AND cm.status = 'approved'
+    """, (reg_no,))
+    headed_clubs = [dict(row) for row in cur.fetchall()]
+    conn.close()
+    return headed_clubs
     
