@@ -257,6 +257,7 @@ const Voting = () => {
         if (response.ok) {
           const electionsData: Election[] = await response.json();
           
+          // Elections are already sorted by the backend service
           // Fetch candidates for each election and check vote status
           const processedElections = await Promise.all(
             electionsData.map(async (election) => {
@@ -396,32 +397,6 @@ const Voting = () => {
           <p className="text-gray-400">Cast your vote and make your voice heard</p>
         </div>
 
-        {/* Tab Navigation */}
-        <div className="flex justify-center mb-8">
-          <div className="border border-gray-800 rounded-lg p-1 shadow-lg" style={{backgroundColor: 'hsla(0,0%,6.9%,1)'}}>
-            <button
-              onClick={() => setActiveTab('active')}
-              className={`px-6 py-2 rounded-md text-sm font-medium transition-all duration-300 cursor-pointer ${
-                activeTab === 'active'
-                  ? 'bg-white text-black shadow-lg'
-                  : 'text-gray-300 hover:text-white hover:bg-gray-700'
-              }`}
-            >
-              Active Elections ({ongoingElections.length + upcomingElections.length})
-            </button>
-            <button
-              onClick={() => setActiveTab('completed')}
-              className={`px-6 py-2 rounded-md text-sm font-medium transition-all duration-300 cursor-pointer ${
-                activeTab === 'completed'
-                  ? 'bg-white text-black shadow-lg'
-                  : 'text-gray-300 hover:text-white hover:bg-gray-700'
-              }`}
-            >
-              Completed Elections ({completedElections.length})
-            </button>
-          </div>
-        </div>
-
         {/* Active Elections */}
         {activeTab === 'active' && (
           <div className="space-y-8">
@@ -491,19 +466,6 @@ const Voting = () => {
                 <p className="text-gray-400">There are currently no ongoing or upcoming elections available.</p>
               </div>
             )}
-          </div>
-        )}
-
-        {/* Completed Elections */}
-        {activeTab === 'completed' && (
-          <div className="text-center py-12">
-            <div className="w-16 h-16 bg-white/10 rounded-full flex items-center justify-center mx-auto mb-4">
-              <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </div>
-            <h3 className="text-xl font-semibold text-white mb-2">No Completed Elections</h3>
-            <p className="text-gray-400">Completed elections will appear here once voting periods end</p>
           </div>
         )}
       </div>

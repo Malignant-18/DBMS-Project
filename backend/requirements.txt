@@ -1,0 +1,22 @@
+
+# Core web framework
+Flask>=2.0.0
+
+# Cross Origin Resource Sharing
+Flask-Cors>=3.0.10
+
+# Background scheduler used to transition election states
+APScheduler>=3.8.0
+
+# Werkzeug utilities (password hashing used via werkzeug.security)
+Werkzeug>=2.0.0
+
+# Optional: load environment variables from .env files (useful in local dev)
+python-dotenv>=1.0.0
+
+# WSGI server for production deployments (optional but recommended)
+gunicorn>=20.1.0
+
+# For improved logging and debugging in production (optional)
+colorlog>=6.6.0
+

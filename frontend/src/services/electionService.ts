@@ -47,6 +47,16 @@ export interface DeleteElectionRequest {
   club_id: number;
 }
 
+// Sort elections by status priority: ongoing -> upcoming -> completed
+const sortElectionsByStatus = (elections: Election[]) => {
+  const statusPriority = { 'ongoing': 1, 'upcoming': 2, 'completed': 3 };
+  return elections.sort((a, b) => {
+    const priorityA = statusPriority[a.status as keyof typeof statusPriority] || 4;
+    const priorityB = statusPriority[b.status as keyof typeof statusPriority] || 4;
+    return priorityA - priorityB;
+  });
+};
+
 // Fetch all elections
 export const fetchAllElections = async (): Promise<{ success: boolean; data: Election[] }> => {
   try {
@@ -58,7 +68,7 @@ export const fetchAllElections = async (): Promise<{ success: boolean; data: Ele
 
     return {
       success: response.ok,
-      data: response.ok ? data : [],
+      data: response.ok ? sortElectionsByStatus(data) : [],
     };
   } catch (error) {
     console.error('Error fetching elections:', error);
@@ -80,7 +90,7 @@ export const fetchElectionsByStatus = async (status: string): Promise<{ success:
 
     return {
       success: response.ok,
-      data: response.ok ? data : [],
+      data: response.ok ? sortElectionsByStatus(data) : [],
     };
   } catch (error) {
     console.error('Error fetching elections by status:', error);
@@ -102,7 +112,7 @@ export const fetchClubElections = async (clubId: number): Promise<{ success: boo
 
     return {
       success: response.ok,
-      data: response.ok ? data : [],
+      data: response.ok ? sortElectionsByStatus(data) : [],
     };
   } catch (error) {
     console.error('Error fetching club elections:', error);

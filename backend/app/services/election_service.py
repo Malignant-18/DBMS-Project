@@ -33,19 +33,31 @@ def get_club_elections(club_id):
     return get_elections_by_club(club_id)
 
 def delete_election_service(election_id, reg_no, club_id):
+    # First check if user is a site-wide admin
+    site_role = get_user_role(reg_no)
+    if site_role == "admin":
+        return delete_election(election_id)
+    
+    # If not admin, check club-specific role
     user_role = get_member_role(reg_no, club_id)
     if not user_role:
-        return {"error": "User not found"}, 404 
-    if user_role not in ("Admin", "Head"):
-        return {"error": "Unauthorized"}, 403
+        return {"error": "User not found or not a member of this club"}, 404 
+    if user_role != "Head":
+        return {"error": "Unauthorized - only admins and club heads can delete elections"}, 403
     return delete_election(election_id)
 
 def update_election_status_service(election_id, new_status, reg_no, club_id):
+    # First check if user is a site-wide admin
+    site_role = get_user_role(reg_no)
+    if site_role == "admin":
+        return update_election_status(election_id, new_status)
+    
+    # If not admin, check club-specific role
     user_role = get_member_role(reg_no, club_id)
     if not user_role:
-        return {"error": "User not found"}, 404 
-    if user_role not in ("Admin", "Head"):
-        return {"error": "Unauthorized"}, 403
+        return {"error": "User not found or not a member of this club"}, 404 
+    if user_role != "Head":
+        return {"error": "Unauthorized - only admins and club heads can update election status"}, 403
     return update_election_status(election_id, new_status)
 
 def get_club_id_of_election_service(election_id):

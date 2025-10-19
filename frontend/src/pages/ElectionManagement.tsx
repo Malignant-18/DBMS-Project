@@ -136,14 +136,26 @@ const ElectionManagement: React.FC = () => {
       if (response.ok) {
         const data = await response.json();
         
+        // Sort elections by status priority: ongoing -> upcoming -> completed
+        const sortElectionsByStatus = (elections: Election[]) => {
+          const statusPriority = { 'ongoing': 1, 'upcoming': 2, 'completed': 3 };
+          return elections.sort((a, b) => {
+            const priorityA = statusPriority[a.status as keyof typeof statusPriority] || 4;
+            const priorityB = statusPriority[b.status as keyof typeof statusPriority] || 4;
+            return priorityA - priorityB;
+          });
+        };
+        
         // Filter elections for club heads
         if (user?.role !== 'admin' && userClubs.length > 0) {
           const userClubIds = userClubs.map(club => club.club_id);
           const filteredElections = data.filter((election: Election) => 
             userClubIds.includes(election.club_id)
           );
-          setElections(filteredElections);
+          // Apply sorting to filtered results since backend sorting is applied to all data
+          setElections(sortElectionsByStatus(filteredElections));
         } else {
+          // Data is already sorted from backend service
           setElections(data);
         }
       }
