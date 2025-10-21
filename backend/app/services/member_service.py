@@ -1,3 +1,4 @@
+
 from ..models import member_model
 from ..models.user_model import get_user_role
 
@@ -27,6 +28,8 @@ def get_club_approved_members(club_id):
 def change_membership_status(reg_no, club_id, status):
     
     return member_model.update_membership_status(reg_no, club_id, status)
+def get_pending_requests_service():
+    return member_model.get_pending_requests()
 
 def upgrade_to_head_service(admin_reg_no, membership_id):
     role = get_user_role(admin_reg_no)    

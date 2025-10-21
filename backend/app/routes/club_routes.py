@@ -1,3 +1,4 @@
+
 from flask import Blueprint, jsonify, request
 from ..services.club_service import fetch_clubs, fetch_single_club
 from ..services.member_service import (
@@ -27,7 +28,14 @@ def get_club(club_id):
         return jsonify(club), 200
     return jsonify(msg="Club not found"), 404
 
-
+@club_bp.route("/pending-requests", methods=["GET", "OPTIONS"])
+def get_pending_requests_route():
+    if request.method == "OPTIONS":
+        return "", 200
+    # In production, check admin role here. For now, just return all pending requests.
+    from ..services.member_service import get_pending_requests_service
+    pending = get_pending_requests_service()
+    return jsonify(pending), 200
 @club_bp.route("/<int:club_id>/join", methods=["POST", "OPTIONS"])
 def join_club(club_id):
     if request.method == "OPTIONS":

@@ -1,5 +1,5 @@
 import { NavLink, useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "../contexts/AuthContext";
 
 const NavBar = () => {
@@ -7,6 +7,58 @@ const NavBar = () => {
     const [isProfileOpen, setIsProfileOpen] = useState(false);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const { state, logout } = useAuth();
+    // Admin notification modal state
+    const [isNotifOpen, setIsNotifOpen] = useState(false);
+    const [pendingRequests, setPendingRequests] = useState<any[]>([]);
+    const [notifLoading, setNotifLoading] = useState(false);
+    const [notifError, setNotifError] = useState("");
+    // Fetch pending requests for admin
+    const fetchPendingRequests = async () => {
+        setNotifLoading(true);
+        setNotifError("");
+        try {
+            const res = await fetch("http://127.0.0.1:5000/club/pending-requests", {
+                method: "GET",
+                credentials: "include"
+            });
+            if (res.ok) {
+                const data = await res.json();
+                setPendingRequests(data);
+            } else {
+                setNotifError("Failed to fetch requests");
+            }
+        } catch (err) {
+            setNotifError("Network error");
+        } finally {
+            setNotifLoading(false);
+        }
+    };
+
+    // Open modal and fetch requests
+    const openNotifModal = () => {
+        setIsNotifOpen(true);
+        fetchPendingRequests();
+    };
+
+    // Accept/reject handler
+    const handleRequestAction = async (club_id: number, reg_no: string, status: 'approved' | 'rejected') => {
+        try {
+            const res = await fetch(`http://127.0.0.1:5000/club/${club_id}/membership/status`, {
+                method: "PATCH",
+                headers: { 'Content-Type': 'application/json' },
+                credentials: "include",
+                body: JSON.stringify({ reg_no, status })
+            });
+            if (res.ok) {
+                // Remove from local list
+                setPendingRequests(prev => prev.filter(r => !(r.club_id === club_id && r.reg_no === reg_no)));
+            } else {
+                alert("Failed to update status");
+            }
+        } catch (err) {
+            alert("Network error");
+        }
+    };
 
     // Get user data from context
     const user = state.user;
@@ -63,6 +115,69 @@ const NavBar = () => {
                     {/* Desktop Navigation */}
                     <div className="hidden md:block">
                         <div className="ml-10 flex items-baseline space-x-4">
+                            {/* Admin notification bell */}
+                            {user.role === 'admin' && (
+                                <button
+                                    className="relative ml-2 focus:outline-none"
+                                    title="Pending Membership Requests"
+                                    onClick={openNotifModal}
+                                >
+                                    <svg className="w-6 h-6 text-white hover:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                                    </svg>
+                                    {pendingRequests.length > 0 && (
+                                        <span className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full text-xs px-1.5 py-0.5">{pendingRequests.length}</span>
+                                    )}
+                                </button>
+                            )}
+            {/* Admin Notification Modal */}
+            {isNotifOpen && user.role === 'admin' && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60">
+                    <div className="bg-gray-900 border border-gray-700 rounded-lg shadow-xl w-full max-w-lg mx-4 p-6 relative">
+                        <button className="absolute top-2 right-2 text-gray-400 hover:text-white" onClick={() => setIsNotifOpen(false)}>
+                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                        <h2 className="text-xl font-bold text-white mb-4">Pending Membership Requests</h2>
+                        {notifLoading ? (
+                            <div className="text-gray-300">Loading...</div>
+                        ) : notifError ? (
+                            <div className="text-red-400">{notifError}</div>
+                        ) : pendingRequests.length === 0 ? (
+                            <div className="text-gray-400">No pending requests.</div>
+                        ) : (
+                            <ul className="divide-y divide-gray-700 max-h-80 overflow-y-auto">
+                                {pendingRequests.map((req, idx) => (
+                                    <li key={req.membership_id || idx} className="py-3 flex items-center justify-between">
+                                        <div>
+                                            <div className="text-white font-medium">{req.user_name} <span className="text-gray-400 text-xs">({req.reg_no})</span></div>
+                                            <div className="text-gray-400 text-sm">Club: <span className="font-semibold">{req.club_name}</span></div>
+                                            <div className="text-gray-500 text-xs">Requested: {req.joined_at ? new Date(req.joined_at).toLocaleString() : 'N/A'}</div>
+                                        </div>
+                                        <div className="flex space-x-2">
+                                            <button
+                                                className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded-md text-sm font-semibold"
+                                                title="Accept"
+                                                onClick={() => handleRequestAction(req.club_id, req.reg_no, 'approved')}
+                                            >
+                                                ✓
+                                            </button>
+                                            <button
+                                                className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-md text-sm font-semibold"
+                                                title="Reject"
+                                                onClick={() => handleRequestAction(req.club_id, req.reg_no, 'rejected')}
+                                            >
+                                                ✗
+                                            </button>
+                                        </div>
+                                    </li>
+                                ))}
+                            </ul>
+                        )}
+                    </div>
+                </div>
+            )}
                             <NavLink to='/home' className={linkStyle}>
                                 <div className="flex items-center">
                                     <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">

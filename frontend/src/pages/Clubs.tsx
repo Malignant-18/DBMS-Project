@@ -193,6 +193,32 @@ const Clubs = () => {
   const myClubs = allClubs.filter(club => club.isJoined);
   const pendingClubs = allClubs.filter(club => club.membershipStatus === 'pending');
 
+  // Handler for joining a club
+  const handleJoinClub = async (clubId: number) => {
+    if (!user || !user.reg_no) return;
+    try {
+      const response = await fetch(`http://127.0.0.1:5000/club/${clubId}/join`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({ reg_no: user.reg_no })
+      });
+      if (response.ok) {
+        // Update UI: set membershipStatus to 'pending' for this club
+        setAllClubs(prevClubs => prevClubs.map(club =>
+          club.id === clubId ? { ...club, membershipStatus: 'pending' } : club
+        ));
+      } else {
+        const errorData = await response.json();
+        alert(errorData.msg || 'Failed to send join request');
+      }
+    } catch (err) {
+      alert('Network error: could not send join request');
+    }
+  };
+
   return (
     <div className="min-h-screen bg-black py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -520,6 +546,11 @@ const Clubs = () => {
                           : 'bg-purple-500 hover:bg-purple-600 text-white'
                       }`}
                       disabled={club.membershipStatus === 'pending'}
+                      onClick={() => {
+                        if (club.membershipStatus === undefined || club.membershipStatus === null) {
+                          handleJoinClub(club.id);
+                        }
+                      }}
                     >
                       {club.membershipStatus === 'approved' ? 'View Club' : 
                        club.membershipStatus === 'pending' ? 'Request Pending' :

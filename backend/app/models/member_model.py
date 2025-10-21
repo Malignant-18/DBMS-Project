@@ -1,3 +1,4 @@
+
 from ..utils.db import get_db_connection
 
 def create_memberships_table():
@@ -16,7 +17,7 @@ def create_memberships_table():
     """)
     conn.commit()
     conn.close()
-
+    
 def add_membership(reg_no, club_id, role="Member"):
     conn, cur = get_db_connection()
     try:
@@ -102,4 +103,20 @@ def get_clubs_headed_by_user(reg_no):
     headed_clubs = [dict(row) for row in cur.fetchall()]
     conn.close()
     return headed_clubs
-    
+
+def get_pending_requests():
+    """
+    Returns all pending club membership requests with user and club info.
+    """
+    conn, cur = get_db_connection()
+    cur.execute('''
+        SELECT cm.membership_id, cm.reg_no, cm.club_id, cm.join_date, u.name as user_name, c.name as club_name
+        FROM ClubMemberships cm
+        JOIN Users u ON cm.reg_no = u.reg_no
+        JOIN Clubs c ON cm.club_id = c.club_id
+        WHERE cm.status = 'pending'
+        ORDER BY cm.join_date DESC
+    ''')
+    pending = [dict(row) for row in cur.fetchall()]
+    conn.close()
+    return pending
